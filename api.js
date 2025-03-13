@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const _host = '192.168.132.21';
+const _host = '192.168.1.5';
 const _port = '5000';
 
 const api = axios.create({
@@ -33,6 +33,18 @@ export function apigetItemByDescription(query) {
 export const getPriceLink = (itemCode) => {
   const url = `/GetPriceLink?itemCode=${itemCode}`;
   return api.get(url);
+};
+
+
+export const deletePriceLink = (itemCode) => {
+
+  const url = `/${itemCode}`;
+  return api.delete(url);
+};
+
+export const addPriceLink = (data) => {
+  const url = '/AddPriceLink';
+  return api.post(url, data);
 };
 
 

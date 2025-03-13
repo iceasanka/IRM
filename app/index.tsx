@@ -20,7 +20,8 @@ const HomePage = () => {
       <Separator />
 
       <Button title='Return Stock' onPress={() => router.push("/Stock/return")}></Button>
-
+      <Separator />
+      <Button title='Price Link' onPress={() => router.push("/Stock/PriceLinkPage")}></Button>
     </View>
 
 

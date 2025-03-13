@@ -14,6 +14,9 @@ const RootLayout = () => {
           <Stack.Screen name="Stock/return" options={{
           headerTitle:"Return",
         }}/>
+        <Stack.Screen name="Stock/PriceLinkPage" options={{
+          headerTitle:"PriceLink",
+        }}/>
 
     </Stack>
   )
