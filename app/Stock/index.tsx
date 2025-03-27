@@ -37,6 +37,7 @@ const StockPage = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [posStock, setPosStock] = useState("");
   const inputRef2 = useRef(null);
+  const [isOn, setIsOn] = useState(false); // State to track On/Off button
 
   useEffect(() => {
     if (modalVisible) {
@@ -201,6 +202,10 @@ const StockPage = () => {
     fetchItemDetails(suggestion.item_Code);
   };
 
+  const toggleOnOff = () => {
+    setIsOn((prevState) => !prevState);
+  };
+
   return (
     <SafeAreaView>
       <ScrollView keyboardShouldPersistTaps="always">
@@ -336,7 +341,43 @@ const StockPage = () => {
                 />
               </View>
             </View>
-
+            <View style={styles.row}>
+              <View style={styles.cell}>
+                <Text style={styles.labelText}>Total Stock</Text>
+              </View>
+              <View
+                style={[
+                  styles.cell,
+                  { flexDirection: "row", alignItems: "center" },
+                ]}
+              >
+                <TextInput
+                  style={[styles.valueText, { flex: 1 }]}
+                  value={(
+                    parseFloat(posStock) + parseFloat(addOpStock || "0")
+                  ).toString()}
+                  onChangeText={(value) => {
+                    // Allow user to edit the total stock value
+                    const numericValue = parseFloat(value) || 0;
+                    setAddOpStock(
+                      (numericValue - parseFloat(posStock)).toString()
+                    );
+                  }}
+                />
+                <TouchableOpacity
+                  style={[
+                    styles.toggleButton,
+                    {
+                      backgroundColor: isOn ? "#28a745" : "#DC3545",
+                      marginLeft: 10,
+                    },
+                  ]}
+                  onPress={toggleOnOff}
+                >
+                  <Text style={styles.buttonText}>{isOn ? "On" : "Off"}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
             <View style={styles.row}>
               <View style={styles.cell}>
                 <Text style={styles.labelText}>Add/OpStock</Text>
@@ -445,19 +486,15 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   vw_1: {},
-
   vw_2: {
-    //backgroundColor: 'blue',
     justifyContent: "flex-end",
     flexDirection: "row",
     alignItems: "flex-end",
   },
   vw_3: {
-    //backgroundColor: 'blue',
     justifyContent: "flex-end",
     flexDirection: "row",
     alignItems: "flex-end",
-    //flex: 2,
   },
   modalContainer: {
     flex: 1,
@@ -474,7 +511,6 @@ const styles = StyleSheet.create({
     padding: 5,
     alignItems: "center",
   },
-
   modalContainer_2: {
     flex: 1,
     justifyContent: "flex-start",
@@ -490,7 +526,6 @@ const styles = StyleSheet.create({
     padding: 5,
     alignItems: "center",
   },
-
   container: {
     flex: 1,
     padding: 10,
@@ -523,42 +558,47 @@ const styles = StyleSheet.create({
     borderColor: "gray",
     borderWidth: 1,
     color: "#555",
-    //fontSize: 18,
-    //fontWeight: 'bold',
   },
   scanButton: {
-    width: 100, // Fixed width
-    height: 100, // Fixed height
-    backgroundColor: "#007BFF", // Background color
+    width: 100,
+    height: 100,
+    backgroundColor: "#007BFF",
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 10, // Rounded corners
-    marginBottom: 10, // Space between buttons
+    borderRadius: 10,
+    marginBottom: 10,
   },
   clearButton: {
-    width: 100, // Fixed width
-    height: 50, // Fixed height
-    backgroundColor: "#DC3545", // Background color
+    width: 100,
+    height: 50,
+    backgroundColor: "#DC3545",
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 10, // Rounded corners
+    borderRadius: 10,
   },
   buttonText: {
-    color: "white", // Text color
-    fontSize: 16, // Text size
-    fontWeight: "bold", // Text weight
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
   },
   addLinkButton: {
-    backgroundColor: "#28a745", // Green background
-    padding: 10, // Padding
-    borderRadius: 5, // Rounded corners
+    backgroundColor: "#28a745",
+    padding: 10,
+    borderRadius: 5,
     justifyContent: "center",
     alignItems: "center",
   },
   deleteButton: {
-    backgroundColor: "#DC3545", // Red background
-    padding: 10, // Padding
-    borderRadius: 5, // Rounded corners
+    backgroundColor: "#DC3545",
+    padding: 10,
+    borderRadius: 5,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  toggleButton: {
+    backgroundColor: "#007BFF",
+    padding: 10,
+    borderRadius: 5,
     justifyContent: "center",
     alignItems: "center",
   },
