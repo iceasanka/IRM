@@ -19,6 +19,10 @@ const apiSupplier = axios.create({
   baseURL: `http://${_host}:${_port}/api/Supplier`,
 });
 
+const apiPosStock = axios.create({
+  baseURL: `http://${_host}:${_port}/api/PosStock`,
+});
+
 
 export const apigetItemWithDetailsByBarcode = (barcode) => {
   const url = `/GetItemWithDetailsByBarcode?barcode=${barcode}`;
@@ -36,11 +40,11 @@ export const getPriceLink = (itemCode) => {
 };
 
 
-export const deletePriceLink = (itemCode) => {
+// export const deletePriceLink = (itemCode) => {
 
-  const url = `/${itemCode}`;
-  return api.delete(url);
-};
+//   const url = `/${itemCode}`;
+//   return api.delete(url);
+// };
 
 export const addPriceLink = (data) => {
   const url = '/AddPriceLink';
@@ -106,6 +110,13 @@ export function apigetSuppByDescription(query) {
   //const fullUrl = `${apiReturn.defaults.baseURL}${url}`;
   //console.log(fullUrl);
   return apiSupplier.get(url);
+}
+
+
+export function apigetPosStockByItemCode(_itemcode) {
+  const url =`/GetPosStock?itemCode=${_itemcode}`;
+
+  return apiPosStock.get(url);
 }
 
 
