@@ -240,15 +240,13 @@ const StockPage = () => {
       <ScrollView keyboardShouldPersistTaps="always">
         <View style={styles.container}>
           <View style={styles.vw_1}>
-            <View style={styles.row}>
+            <View style={[styles.row, { backgroundColor: "#e9e9e9" }]}>
               <View style={styles.cell}>
                 <Text style={styles.labelText}>Item Code</Text>
               </View>
               <View style={styles.cell}>
                 <TextInput style={styles.valueText} value={items.item_Code} />
               </View>
-            </View>
-            <View style={styles.row}>
               <View style={styles.cell}>
                 <Text style={styles.labelText}>Ref Code</Text>
               </View>
@@ -324,7 +322,7 @@ const StockPage = () => {
                 </View>
               </View>
             </Modal>
-            <View style={styles.row}>
+            <View style={[styles.row, { backgroundColor: "#f9f9f9" }]}>
               <View style={styles.cell}>
                 <Text style={styles.labelText}>Price</Text>
               </View>
@@ -334,8 +332,6 @@ const StockPage = () => {
                   value={items.eRet_Price ? items.eRet_Price.toString() : ""}
                 />
               </View>
-            </View>
-            <View style={styles.row}>
               <View style={styles.cell}>
                 <Text style={styles.labelText}>Discount</Text>
               </View>
@@ -351,17 +347,15 @@ const StockPage = () => {
                 <TextInput style={styles.valueText} value={_priceLink} />
               </View>
             </View>
-            <View style={styles.row}>
+            <View style={[styles.row, { backgroundColor: "#f1f1f1" }]}>
               <View style={styles.cell}>
                 <Text style={styles.labelText}>Stock</Text>
               </View>
               <View style={styles.cell}>
                 <TextInput style={styles.valueText} value={stock.toString()} />
               </View>
-            </View>
-            <View style={styles.row}>
               <View style={styles.cell}>
-                <Text style={styles.labelText}>Today Billed Stock</Text>
+                <Text style={styles.labelText}>POS Stock</Text>
               </View>
               <View style={styles.cell}>
                 <TextInput
@@ -389,7 +383,9 @@ const StockPage = () => {
                   ]}
                   onPress={toggleOnOff}
                 >
-                  <Text style={styles.buttonText}>{isOn ? "On" : "Off"}</Text>
+                  <Text style={styles.buttonText}>
+                    {isOn ? "WithPoSt" : "WithOutPoSt"}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
