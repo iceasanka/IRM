@@ -125,10 +125,7 @@ const StockPage = () => {
 
   const fetchPosStock = async (itemCode: string) => {
     try {
-      console.log(itemCode);
-
       const response = await apigetPosStockByItemCode(itemCode);
-      console.log(response.data);
       setPosStock(response.data);
     } catch (error) {
       console.error(error);
@@ -145,7 +142,6 @@ const StockPage = () => {
 
       fetchStock(itemCode);
 
-      console.log(itemCode);
       setAddOpStock("");
       setTotalStock("");
     } catch (error) {
@@ -159,7 +155,6 @@ const StockPage = () => {
   };
 
   const confirmUpdateStock = (id: string) => {
-    console.log("Confirming update for ID:", totalStock);
     if (validateStockInput(totalStock)) {
       Alert.alert(
         "Confirmation",
@@ -224,16 +219,12 @@ const StockPage = () => {
   };
 
   const updateTotalStock = (newAddOpStock: string) => {
-    console.log("addOpStock:", newAddOpStock);
     if (isOn) {
-      // If the toggle is "On"
       setTotalStock(
         (parseFloat(newAddOpStock) + parseFloat(posStock)).toString()
       );
     } else {
-      // If the toggle is "Off"
       setTotalStock(parseFloat(newAddOpStock).toString());
-      console.log("total-----------:", totalStock);
     }
   };
 
@@ -242,7 +233,6 @@ const StockPage = () => {
       setTotalStock((parseFloat(addOpStock) + parseFloat(posStock)).toString());
     } else {
       setTotalStock(parseFloat(addOpStock).toString());
-      console.log("total-ssssssssss---------:", totalStock);
     }
   };
   return (
