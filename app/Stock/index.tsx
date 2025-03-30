@@ -38,6 +38,7 @@ const StockPage = () => {
   const [posStock, setPosStock] = useState("");
   const inputRef2 = useRef(null);
   const [isOn, setIsOn] = useState(false); // State to track On/Off button
+  const [totalStock, setTotalStock] = useState("");
 
   useEffect(() => {
     if (modalVisible) {
@@ -59,6 +60,18 @@ const StockPage = () => {
       }, 200);
     }
   }, [barcode]);
+
+  useEffect(() => {
+    if (isOn) {
+      // When toggled On, total stock = posStock + addOpStock
+      setTotalStock(
+        (parseFloat(addOpStock || "0") + parseFloat(posStock || "0")).toString()
+      );
+    } else {
+      // When toggled Off, total stock = addOpStock value
+      setTotalStock(addOpStock || "0");
+    }
+  }, [addOpStock, posStock, isOn]);
 
   const handleScan = (scannedData: React.SetStateAction<string>) => {
     setBarcode(scannedData);
@@ -126,7 +139,7 @@ const StockPage = () => {
     try {
       const response = await updateStock({
         Id: id,
-        Stock: parseFloat(addOpStock),
+        Stock: parseFloat(totalStock),
         item: items,
       });
 
@@ -134,6 +147,7 @@ const StockPage = () => {
 
       console.log(itemCode);
       setAddOpStock("");
+      setTotalStock("");
     } catch (error) {
       console.error(error);
     }
@@ -145,7 +159,8 @@ const StockPage = () => {
   };
 
   const confirmUpdateStock = (id: string) => {
-    if (validateStockInput(addOpStock)) {
+    console.log("Confirming update for ID:", totalStock);
+    if (validateStockInput(totalStock)) {
       Alert.alert(
         "Confirmation",
         "Do you want to update the stock?",
@@ -171,6 +186,7 @@ const StockPage = () => {
     setItems({});
     setStock("");
     setAddOpStock("");
+    setTotalStock("");
     setSuggestions([]);
     setPriceLink("");
     setPosStock("");
@@ -204,8 +220,31 @@ const StockPage = () => {
 
   const toggleOnOff = () => {
     setIsOn((prevState) => !prevState);
+    updateTotalStockss();
   };
 
+  const updateTotalStock = (newAddOpStock: string) => {
+    console.log("addOpStock:", newAddOpStock);
+    if (isOn) {
+      // If the toggle is "On"
+      setTotalStock(
+        (parseFloat(newAddOpStock) + parseFloat(posStock)).toString()
+      );
+    } else {
+      // If the toggle is "Off"
+      setTotalStock(parseFloat(newAddOpStock).toString());
+      console.log("total-----------:", totalStock);
+    }
+  };
+
+  const updateTotalStockss = () => {
+    if (isOn) {
+      setTotalStock((parseFloat(addOpStock) + parseFloat(posStock)).toString());
+    } else {
+      setTotalStock(parseFloat(addOpStock).toString());
+      console.log("total-ssssssssss---------:", totalStock);
+    }
+  };
   return (
     <SafeAreaView>
       <ScrollView keyboardShouldPersistTaps="always">
@@ -332,7 +371,7 @@ const StockPage = () => {
             </View>
             <View style={styles.row}>
               <View style={styles.cell}>
-                <Text style={styles.labelText}>Pos Stock</Text>
+                <Text style={styles.labelText}>Today Billed Stock</Text>
               </View>
               <View style={styles.cell}>
                 <TextInput
@@ -345,31 +384,17 @@ const StockPage = () => {
               <View style={styles.cell}>
                 <Text style={styles.labelText}>Total Stock</Text>
               </View>
-              <View
-                style={[
-                  styles.cell,
-                  { flexDirection: "row", alignItems: "center" },
-                ]}
-              >
+              <View style={[styles.cell, styles.totalStockContainer]}>
                 <TextInput
-                  style={[styles.valueText, { flex: 1 }]}
-                  value={(
-                    parseFloat(posStock) + parseFloat(addOpStock || "0")
-                  ).toString()}
-                  onChangeText={(value) => {
-                    // Allow user to edit the total stock value
-                    const numericValue = parseFloat(value) || 0;
-                    setAddOpStock(
-                      (numericValue - parseFloat(posStock)).toString()
-                    );
-                  }}
+                  style={[styles.valueText, styles.totalStockInput]}
+                  value={totalStock}
                 />
                 <TouchableOpacity
                   style={[
                     styles.toggleButton,
+                    styles.totalStockToggleButton,
                     {
                       backgroundColor: isOn ? "#28a745" : "#DC3545",
-                      marginLeft: 10,
                     },
                   ]}
                   onPress={toggleOnOff}
@@ -386,7 +411,10 @@ const StockPage = () => {
                 <TextInput
                   style={[styles.inputTextBox /*, { width: 140 }*/]}
                   value={addOpStock}
-                  onChangeText={setAddOpStock}
+                  onChangeText={(text) => {
+                    setAddOpStock(text);
+                    updateTotalStock(text);
+                  }}
                   ref={inputRef}
                   keyboardType="numeric"
                 />
@@ -462,6 +490,11 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#ddd",
     marginTop: 10,
+  },
+  totalStockContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   suggestionItem: {
     backgroundColor: "white",
@@ -601,6 +634,16 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     justifyContent: "center",
     alignItems: "center",
+  },
+  totalStockToggleButton: {
+    marginLeft: 10, // Example style, adjust as needed
+  },
+  totalStockInput: {
+    borderColor: "gray",
+    borderWidth: 1,
+    padding: 5,
+    fontSize: 16,
+    color: "#333",
   },
 });
 
