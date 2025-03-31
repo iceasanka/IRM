@@ -4,7 +4,6 @@ import {
   Text,
   View,
   TextInput,
-  Button,
   SafeAreaView,
   ScrollView,
   Alert,
@@ -91,7 +90,6 @@ const StockPage = () => {
           setDescription(data.descrip);
           setItems(response.data);
 
-          // Fetch the stock information
           fetchStock(data.item_Code);
 
           fetchPosStock(data.item_Code);
@@ -254,6 +252,7 @@ const StockPage = () => {
                 <TextInput style={styles.valueText} value={items.ref_Code} />
               </View>
             </View>
+
             <View style={styles.row}>
               <View style={styles.cell}>
                 <Text style={styles.labelText}>Barcode</Text>
@@ -266,23 +265,23 @@ const StockPage = () => {
                 />
               </View>
             </View>
+
             <View style={styles.row}>
               <View style={styles.cell}>
                 <Text style={styles.labelText}>Description</Text>
               </View>
               <View style={styles.cell}>
-                {/* Touchable area to open the modal */}
                 <TouchableOpacity onPress={() => setModalVisible(true)}>
                   <TextInput
                     style={styles.valueText}
                     value={description}
-                    editable={false} // Disable editing in this input box
+                    editable={false}
                     placeholder="Touch to search"
                   />
                 </TouchableOpacity>
               </View>
             </View>
-            {/* Modal for the search input and suggestions */}
+
             <Modal
               visible={modalVisible}
               transparent={true}
@@ -322,6 +321,7 @@ const StockPage = () => {
                 </View>
               </View>
             </Modal>
+
             <View style={[styles.row, { backgroundColor: "#f9f9f9" }]}>
               <View style={styles.cell}>
                 <Text style={styles.labelText}>Price</Text>
@@ -339,6 +339,7 @@ const StockPage = () => {
                 <TextInput style={styles.valueText} value={items.tax3} />
               </View>
             </View>
+
             <View style={styles.row}>
               <View style={styles.cell}>
                 <Text style={styles.labelText}>Price Link</Text>
@@ -347,30 +348,39 @@ const StockPage = () => {
                 <TextInput style={styles.valueText} value={_priceLink} />
               </View>
             </View>
+
             <View style={[styles.row, { backgroundColor: "#f1f1f1" }]}>
               <View style={styles.cell}>
                 <Text style={styles.labelText}>Stock</Text>
               </View>
               <View style={styles.cell}>
-                <TextInput style={styles.valueText} value={stock.toString()} />
+                <TextInput
+                  style={[
+                    styles.valueText,
+                    ,
+                    { color: "#228B22", fontSize: 30 },
+                  ]}
+                  value={stock.toString()}
+                />
               </View>
               <View style={styles.cell}>
                 <Text style={styles.labelText}>POS Stock</Text>
               </View>
               <View style={styles.cell}>
                 <TextInput
-                  style={styles.valueText}
+                  style={[styles.valueText, { color: "#FF0000", fontSize: 30 }]}
                   value={posStock.toString()}
                 />
               </View>
             </View>
+
             <View style={styles.row}>
               <View style={styles.cell}>
                 <Text style={styles.labelText}>Total Stock</Text>
               </View>
               <View style={[styles.cell, styles.totalStockContainer]}>
                 <TextInput
-                  style={[styles.valueText, styles.totalStockInput]}
+                  style={[styles.valueText, { color: "#007BFF", fontSize: 30 }]}
                   value={totalStock}
                 />
                 <TouchableOpacity
@@ -389,13 +399,14 @@ const StockPage = () => {
                 </TouchableOpacity>
               </View>
             </View>
+
             <View style={styles.row}>
               <View style={styles.cell}>
                 <Text style={styles.labelText}>Add/OpStock</Text>
               </View>
               <View style={styles.cell}>
                 <TextInput
-                  style={[styles.inputTextBox /*, { width: 140 }*/]}
+                  style={[styles.inputTextBox]}
                   value={addOpStock}
                   onChangeText={(text) => {
                     setAddOpStock(text);
@@ -429,7 +440,7 @@ const StockPage = () => {
           </View>
 
           <View style={styles.vw_2}>
-            <View style={{ width: 120, padding: 2 }}>
+            <View>
               <TouchableOpacity style={styles.clearButton} onPress={clearForm}>
                 <Text style={styles.buttonText}>Clear</Text>
               </TouchableOpacity>
@@ -445,7 +456,7 @@ const StockPage = () => {
                 <View style={styles.popup}>
                   <BarcodeScanner onScan={handleScan} />
                   <TouchableOpacity
-                    style={styles.clearButton}
+                    style={[styles.clearButton, { width: 100, height: 40 }]}
                     onPress={() => setScanning(false)}
                   >
                     <Text style={styles.buttonText}>Close</Text>
@@ -508,7 +519,7 @@ const styles = StyleSheet.create({
   vw_2: {
     justifyContent: "flex-end",
     flexDirection: "row",
-    alignItems: "flex-end",
+    alignItems: "flex-start",
   },
   vw_3: {
     justifyContent: "flex-end",
@@ -523,7 +534,7 @@ const styles = StyleSheet.create({
   },
   popup: {
     width: "90%",
-    height: "40%",
+    height: "45%",
     marginTop: 60,
     backgroundColor: "white",
     borderRadius: 0,
@@ -553,24 +564,24 @@ const styles = StyleSheet.create({
     flexDirection: "row", // Arrange cells horizontally
     borderBottomWidth: 1,
     borderBottomColor: "#ddd",
-    paddingVertical: 5,
+    paddingVertical: 3,
   },
   cell: {
     flex: 1, // Each cell takes up 50% of the row's width
     justifyContent: "center",
-    paddingHorizontal: 5,
+    paddingHorizontal: 3,
   },
   labelText: {
-    fontWeight: "bold",
     color: "#333",
   },
   valueText: {
     color: "#555",
+    fontWeight: "bold",
   },
   inputTextBox: {
     borderColor: "gray",
     borderWidth: 1,
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "bold",
   },
   inputTextBoxDes: {

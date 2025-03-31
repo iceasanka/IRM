@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const _host = '192.168.1.5';
+const _host = '192.168.132.127';
 const _port = '5000';
 
 const api = axios.create({
@@ -39,18 +39,10 @@ export const getPriceLink = (itemCode) => {
   return api.get(url);
 };
 
-
-// export const deletePriceLink = (itemCode) => {
-
-//   const url = `/${itemCode}`;
-//   return api.delete(url);
-// };
-
 export const addPriceLink = (data) => {
   const url = '/AddPriceLink';
   return api.post(url, data);
 };
-
 
 export function apigetStockByItemCode(_itemcode) {
   return apiStock.get(`/GetStock?itemcode=${_itemcode}`);
@@ -61,61 +53,43 @@ export const updateStock = (data) => {
   return apiStock.post(url, data);
 };
 
-
-
 export function getAllReturnItemsBySuppCode(suppcode) {
   const url = `/GetItemsBySuppCode?suppcode=${suppcode}`
-  //const fullUrl = `${apiReturn.defaults.baseURL}${url}`; 
-  //console.log(fullUrl);
   return apiReturn.get(url);
 }
 
 export function apiAddReturnItem(data) {
   const url = '/AddReturnItem';
-  //const fullUrl = `${apiReturn.defaults.baseURL}${url}`;
-  // console.log(fullUrl);
   return apiReturn.post(url, data);
 }
 
 export function apiUpdateItemById(id, data) {
   const url = `/${id}`;
-  //const fullUrl = `${apiReturn.defaults.baseURL}${url}`; // Combine baseURL and endpoint
-  //console.log(fullUrl);
   return apiReturn.put(url, data);;
 }
 
 export function apiProcessReturnItems(data) {
   const url = '/process';
-  //const fullUrl = `${apiReturn.defaults.baseURL}${url}`; // Combine baseURL and endpoint
-  //console.log(fullUrl);
   return apiReturn.post(url, data);;
 }
 
 export function apiPrint(data) {
   const url = '/print';
-  //const fullUrl = `${apiReturn.defaults.baseURL}${url}`;
-  //console.log(fullUrl);
   return apiReturn.post(url, data);;
 }
 
 export function apiDeleteItemById(id) {
   const url = `/${id}`;
-  //const fullUrl = `${apiReturn.defaults.baseURL}${url}`; // Combine baseURL and endpoint
-  //console.log(fullUrl);
   return apiReturn.delete(url);;
 }
 
 export function apigetSuppByDescription(query) {
   const url = `/SearchSuppliers?query=${query}`
-  //const fullUrl = `${apiReturn.defaults.baseURL}${url}`;
-  //console.log(fullUrl);
   return apiSupplier.get(url);
 }
 
-
 export function apigetPosStockByItemCode(_itemcode) {
   const url =`/GetPosStock?itemCode=${_itemcode}`;
-
   return apiPosStock.get(url);
 }
 

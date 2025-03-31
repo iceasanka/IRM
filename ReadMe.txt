@@ -25,4 +25,8 @@ Shift + Alt + A - block comment /uncomment
 eas build --profile production --platform android
 
 -------------------------------
-4791111100432
+4791111100432-
+-------------------------------
+  //const fullUrl = `${apiReturn.defaults.baseURL}${url}`;
+  //console.log(fullUrl);
+  -----------------------------

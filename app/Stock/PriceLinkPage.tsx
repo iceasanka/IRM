@@ -5,9 +5,6 @@ import {
   View,
   TextInput,
   Button,
-  SafeAreaView,
-  ScrollView,
-  Alert,
   Modal,
   FlatList,
   TouchableOpacity,
@@ -127,80 +124,125 @@ const PriceLinkPage = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.row}>
-        <Text style={styles.labelText}>Bar code</Text>
-        <TextInput
-          style={styles.valueText}
-          value={barcode}
-          onChangeText={setBarcode}
-        />
-      </View>
+      <View>
+        <View style={[styles.row, , { backgroundColor: "#e9e9e9" }]}>
+          <View style={styles.cell}>
+            <Text style={styles.labelText}>Bar code</Text>
+          </View>
+          <View style={styles.cell}>
+            <TextInput
+              style={styles.valueText}
+              value={barcode}
+              onChangeText={setBarcode}
+            />
+          </View>
+        </View>
 
-      <View style={styles.row}>
-        <Text style={styles.labelText}>Item Code</Text>
-        <TextInput
-          style={styles.valueText}
-          value={itemCode}
-          // editable={false}
-        />
-      </View>
-      <View style={styles.row}>
-        <Text style={styles.labelText}>Des.</Text>
-        <TextInput
-          style={styles.valueText}
-          value={itemDescrip}
-          //editable={false}
-        />
-      </View>
+        <View style={styles.row}>
+          <View style={styles.cell}>
+            <Text style={styles.labelText}>Item Code</Text>
+          </View>
+          <View style={styles.cell}>
+            <TextInput
+              style={styles.valueText}
+              value={itemCode}
+              editable={false}
+            />
+          </View>
+        </View>
 
-      <View style={styles.row}>
-        <Text style={styles.labelText}>Price Links</Text>
-        <FlatList
-          data={priceLinks}
-          keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item }: { item: { price: number } }) => (
-            <View style={styles.priceLinkRow}>
-              <Text style={styles.priceText}>{item.price}</Text>
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => handleDeletePriceLink(item.price)}
-              >
-                <Text style={styles.buttonText}>Delete</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        />
-      </View>
+        <View style={styles.row}>
+          <View style={styles.cell}>
+            <Text style={styles.labelText}>Des.</Text>
+          </View>
+          <View style={styles.cell}>
+            <TextInput
+              style={styles.valueText}
+              value={itemDescrip}
+              editable={false}
+            />
+          </View>
+        </View>
 
-      <View style={[styles.row, { justifyContent: "space-between" }]}>
-        <Text style={[styles.labelText, { flex: 1 }]}>New Price</Text>
-        <TextInput
-          style={[styles.valueText, { flex: 2, marginRight: 10 }]}
-          value={newPrice}
-          onChangeText={setNewPrice}
-          keyboardType="numeric"
-          ref={inputRef}
-        />
-        <TouchableOpacity
-          style={styles.addLinkButton}
-          onPress={handleAddPriceLink}
-        >
-          <Text style={styles.buttonText}>Add Link</Text>
-        </TouchableOpacity>
+        <View style={styles.row}>
+          <View style={styles.cell}>
+            <Text style={styles.labelText}>Price Links</Text>
+          </View>
+          <View style={styles.cell}>
+            <FlatList
+              data={priceLinks}
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={({ item }: { item: { price: number } }) => (
+                <View style={styles.priceLinkRow}>
+                  <Text style={styles.priceText}>{item.price}</Text>
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => handleDeletePriceLink(item.price)}
+                  >
+                    <Text style={styles.buttonText}>Delete</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            />
+          </View>
+        </View>
+
+        <View style={[styles.row]}>
+          <View style={[styles.cell, { width: "50%" }]}>
+            <Text style={[styles.labelText]}>New Price</Text>
+          </View>
+          <View
+            style={[
+              styles.cell,
+              {
+                width: "20%",
+                justifyContent: "flex-end",
+                alignContent: "flex-end",
+                alignItems: "flex-end",
+              },
+            ]}
+          >
+            <TextInput
+              style={[styles.inputTextBox]}
+              value={newPrice}
+              onChangeText={setNewPrice}
+              keyboardType="numeric"
+              ref={inputRef}
+            />
+          </View>
+          <View
+            style={[
+              styles.cell,
+              {
+                width: "30%",
+                justifyContent: "flex-end",
+                alignContent: "flex-end",
+                alignItems: "flex-end",
+              },
+            ]}
+          >
+            <TouchableOpacity
+              style={styles.addLinkButton}
+              onPress={handleAddPriceLink}
+            >
+              <Text style={styles.buttonText}>Add Link</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
 
       <View style={styles.rightButtonContainer}>
+        <TouchableOpacity style={styles.clearButton} onPress={clearForm}>
+          <Text style={styles.buttonText}>Clear</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity
           style={styles.scanButton}
           onPress={() => setScanning(true)}
         >
           <Text style={styles.buttonText}>Scan</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.clearButton} onPress={clearForm}>
-          <Text style={styles.buttonText}>Clear</Text>
-        </TouchableOpacity>
       </View>
-
       <Modal
         visible={scanning}
         transparent={true}
@@ -221,22 +263,33 @@ const PriceLinkPage = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
+    padding: 5,
   },
   row: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 5,
+    flexDirection: "row", // Arrange cells horizontally
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
+    paddingVertical: 3,
+  },
+  cell: {
+    flex: 1, // Each cell takes up 50% of the row's width
+    justifyContent: "center",
+    paddingHorizontal: 3,
   },
   labelText: {
-    fontWeight: "bold",
-    flex: 1,
+    color: "#333",
   },
   valueText: {
-    flex: 2,
+    color: "#555",
+    fontWeight: "bold",
+  },
+  inputTextBox: {
     borderColor: "gray",
     borderWidth: 1,
-    padding: 5,
+    fontSize: 30,
+    fontWeight: "bold",
+    flex: 1,
+    width: "100%",
   },
 
   priceLinkRow: {
@@ -247,6 +300,9 @@ const styles = StyleSheet.create({
   },
   priceText: {
     flex: 1,
+    fontSize: 30,
+    color: "#228B22",
+    fontWeight: "bold",
   },
   modalContainer: {
     flex: 1,
@@ -265,6 +321,7 @@ const styles = StyleSheet.create({
   rightButtonContainer: {
     alignSelf: "flex-end", // Align the container to the right
     marginBottom: 10, // Add space between buttons and the New Price section
+    flexDirection: "row", // Arrange buttons horizontally
   },
   scanButton: {
     width: 100, // Fixed width
@@ -294,6 +351,7 @@ const styles = StyleSheet.create({
     borderRadius: 5, // Rounded corners
     justifyContent: "center",
     alignItems: "center",
+    width: 100, // Fixed width
   },
   deleteButton: {
     backgroundColor: "#DC3545", // Red background

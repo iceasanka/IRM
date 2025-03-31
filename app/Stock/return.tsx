@@ -1,27 +1,48 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, Modal, Alert, TouchableOpacity, Button, SafeAreaView, ScrollView } from 'react-native';
-import BarcodeScanner from '../../BarcodeScanner.js';
-import { apigetStockByItemCode, updateStock, apigetItemWithDetailsByBarcode, apigetItemByDescription, getPriceLink, getAllReturnItemsBySuppCode, apiProcessReturnItems, apiAddReturnItem, apiUpdateItemById, apigetSuppByDescription, apiPrint, apiDeleteItemById } from '../../api.js';
-import RetunItemListPage from './RetunItemListPage.js';
-
+import React, { useState, useEffect, useRef } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TextInput,
+  Modal,
+  Alert,
+  TouchableOpacity,
+  Button,
+} from "react-native";
+import BarcodeScanner from "../../BarcodeScanner.js";
+import {
+  apigetStockByItemCode,
+  updateStock,
+  apigetItemWithDetailsByBarcode,
+  apigetItemByDescription,
+  getPriceLink,
+  getAllReturnItemsBySuppCode,
+  apiProcessReturnItems,
+  apiAddReturnItem,
+  apiUpdateItemById,
+  apigetSuppByDescription,
+  apiPrint,
+  apiDeleteItemById,
+} from "../../api.js";
+import RetunItemListPage from "./RetunItemListPage.js";
 
 const ReturnPage = () => {
-
   const [_modalVisible, setModalVisible] = useState(false);
-  const [_description, setDescription] = useState('');
+  const [_description, setDescription] = useState("");
   const inputRef2 = useRef(null);
   const [_suggestions, setSuggestions] = useState([]);
-  const [_itemCode, setItemCode] = useState('');
+  const [_itemCode, setItemCode] = useState("");
   const [_items, setItems] = useState({});
-  const [_stock, setStock] = useState('');
-  const [_barcode, setBarcode] = useState('');
+  const [_stock, setStock] = useState("");
+  const [_barcode, setBarcode] = useState("");
   const inputRef = useRef(null);
   const [_scanning, setScanning] = useState(false);
-  const [_retunQty, setReturnQty] = useState('');
+  const [_retunQty, setReturnQty] = useState("");
   const [_returnItems, setReturnItems] = useState<ReturnItem[]>([]);
 
   const [_suppSuggestions, setSuppSuggestions] = useState([]);
-  const [_suppCode, setSuppCode] = useState('');
+  const [_suppCode, setSuppCode] = useState("");
   const [_supplier, setSupplier] = useState({});
   const [_suppmodalVisible, setsuppModalVisible] = useState(false);
 
@@ -30,7 +51,6 @@ const ReturnPage = () => {
     name: string;
     selected: boolean;
   }
-
 
   useEffect(() => {
     if (_modalVisible) {
@@ -53,7 +73,6 @@ const ReturnPage = () => {
     }
   }, [_barcode]);
 
-
   const GetItem = (suggestion) => {
     try {
       setDescription(suggestion.descrip);
@@ -74,7 +93,6 @@ const ReturnPage = () => {
       } else {
         setSuggestions([]);
       }
-
     } catch (error) {
       console.error(error);
     }
@@ -93,12 +111,11 @@ const ReturnPage = () => {
   const GetItemDetails = async (barcode: string) => {
     try {
       if (barcode) {
-
         const response = await apigetItemWithDetailsByBarcode(barcode);
 
         const data = response.data;
 
-        if (response.data == '') {
+        if (response.data == "") {
           clearForm();
         } else {
           setItemCode(data.item_Code);
@@ -120,7 +137,6 @@ const ReturnPage = () => {
       const response = await apigetStockByItemCode(itemCode);
 
       setStock(response.data.stock);
-
     } catch (error) {
       console.error(error);
     }
@@ -128,15 +144,14 @@ const ReturnPage = () => {
 
   const GetReturnItemListBySuppCode = async (suppCode: string) => {
     try {
-
-      if (!suppCode || suppCode.trim() === '') {
+      if (!suppCode || suppCode.trim() === "") {
         Alert.alert("Invalid Input", "Please enter supplier Code.");
         return;
       }
 
       const response = await getAllReturnItemsBySuppCode(suppCode);
 
-      if (response.data == '') {
+      if (response.data == "") {
         //clearForm();
       } else {
         setReturnItems(response.data);
@@ -154,9 +169,9 @@ const ReturnPage = () => {
         [
           {
             text: "Cancel",
-            style: "cancel"
+            style: "cancel",
           },
-          { text: "OK", onPress: () => AddReturnItem(id) }
+          { text: "OK", onPress: () => AddReturnItem(id) },
         ],
         { cancelable: false }
       );
@@ -167,7 +182,6 @@ const ReturnPage = () => {
 
   const AddReturnItem = async (id) => {
     try {
-
       const returnItem = {
         Item_Code: _items.item_Code,
         Ref_Code: _items.ref_Code,
@@ -175,18 +189,17 @@ const ReturnPage = () => {
         Descrip: _items.descrip,
         Supp_Code: _items.supp_Code,
         Status: 1,
-        Date: new Date().toISOString().split('T')[0],
+        Date: new Date().toISOString().split("T")[0],
         Cost_Price: _items.cost_Price,
         ERet_Price: _items.eRet_Price,
-        Qty: parseFloat(_retunQty)
+        Qty: parseFloat(_retunQty),
       };
 
       const response = await apiAddReturnItem(returnItem);
 
       setReturnItems((prevItems) => [...prevItems, response.data]);
 
-      setReturnQty('');
-
+      setReturnQty("");
     } catch (error) {
       console.error(error);
     }
@@ -194,7 +207,6 @@ const ReturnPage = () => {
 
   const handleSuppDesChange = (text) => {
     try {
-
       setSuppCode(text);
 
       if (text.length > 0) {
@@ -202,7 +214,6 @@ const ReturnPage = () => {
       } else {
         setSuppSuggestions([]);
       }
-
     } catch (error) {
       console.error(error);
     }
@@ -228,27 +239,19 @@ const ReturnPage = () => {
     }
   };
 
-  const passData = () => {
-
-    setBarcode('8718719850008');
-    GetItemDetails(_barcode);
-
-  };
-
   const clearForm = () => {
-    setBarcode('');
-    setItemCode('');
-    setDescription('');
+    setBarcode("");
+    setItemCode("");
+    setDescription("");
     setItems({});
-    setStock('');
-    setReturnQty('');
+    setStock("");
+    setReturnQty("");
     setSuggestions([]);
     //setPriceLink('');
     setReturnItems([]);
     setSupplier({});
-    setSuppCode('');
+    setSuppCode("");
     setSuppSuggestions([]);
-
   };
 
   const handleScan = (scannedData: React.SetStateAction<string>) => {
@@ -298,14 +301,27 @@ const ReturnPage = () => {
               // After updating, update the local state to reflect the changes
               setReturnItems((prevItems) =>
                 prevItems.map((item) =>
-                  item.selected ? { ...item, status: 2, statusText: "Returned", selected: false } : item
+                  item.selected
+                    ? {
+                        ...item,
+                        status: 2,
+                        statusText: "Returned",
+                        selected: false,
+                      }
+                    : item
                 )
               );
 
-              Alert.alert("Done", "Selected items have been marked as returned.");
+              Alert.alert(
+                "Done",
+                "Selected items have been marked as returned."
+              );
             } catch (error) {
               console.error("Error updating items:", error);
-              Alert.alert("Error", "An error occurred while updating items. Please try again.");
+              Alert.alert(
+                "Error",
+                "An error occurred while updating items. Please try again."
+              );
             }
           },
         },
@@ -313,24 +329,34 @@ const ReturnPage = () => {
     );
   };
 
-
   const ProcessSelectedItems = async () => {
     const itemsToProcess = _returnItems.filter((item) => item.status === 2);
 
     if (itemsToProcess.length === 0) {
-      Alert.alert("No items to process", "There are no items with status returned.");
+      Alert.alert(
+        "No items to process",
+        "There are no items with status returned."
+      );
       return;
     }
 
-    const uniqueSuppCodes = [...new Set(itemsToProcess.map((item) => item.supp_Code))];
+    const uniqueSuppCodes = [
+      ...new Set(itemsToProcess.map((item) => item.supp_Code)),
+    ];
 
     if (uniqueSuppCodes.length > 1) {
-      Alert.alert("Validation Error", "Items have different supplier codes. Please ensure all items belong to the same supplier.");
+      Alert.alert(
+        "Validation Error",
+        "Items have different supplier codes. Please ensure all items belong to the same supplier."
+      );
       return;
     }
 
     if (uniqueSuppCodes[0] !== _suppCode) {
-      Alert.alert("Validation Error", "Items do not match the expected supplier code.");
+      Alert.alert(
+        "Validation Error",
+        "Items do not match the expected supplier code."
+      );
       return;
     }
 
@@ -352,7 +378,10 @@ const ReturnPage = () => {
                 prevItems.filter((item) => item.status !== 2)
               );
 
-              Alert.alert("Success", "All items with status returned have been processed.");
+              Alert.alert(
+                "Success",
+                "All items with status returned have been processed."
+              );
 
               if (response.data.print) {
                 Alert.alert(
@@ -374,14 +403,16 @@ const ReturnPage = () => {
               }
             } catch (error) {
               console.error("Error processing items:", error);
-              Alert.alert("Error", "An error occurred while processing items. Please try again.");
+              Alert.alert(
+                "Error",
+                "An error occurred while processing items. Please try again."
+              );
             }
           },
         },
       ]
     );
   };
-
 
   const DeleteItems = async () => {
     const selectedItems = _returnItems.filter((item) => item.selected);
@@ -409,7 +440,9 @@ const ReturnPage = () => {
 
               // Update the state to remove the deleted items
               setReturnItems((prevItems) =>
-                prevItems.filter((item) => !selectedItems.some((sel) => sel.id === item.id))
+                prevItems.filter(
+                  (item) => !selectedItems.some((sel) => sel.id === item.id)
+                )
               );
 
               Alert.alert("Done", "Selected items have been deleted.");
@@ -424,9 +457,7 @@ const ReturnPage = () => {
     );
   };
 
-
   const printProcessedData = async (items) => {
-
     if (items.length === 0) {
       Alert.alert("No items to print", "There are no items.");
       return;
@@ -435,7 +466,10 @@ const ReturnPage = () => {
       await apiPrint(items);
     } catch (error) {
       console.error("Error print items:", error);
-      Alert.alert("Error", "An error occurred while print items. Please try again.");
+      Alert.alert(
+        "Error",
+        "An error occurred while print items. Please try again."
+      );
     }
   };
 
@@ -458,7 +492,11 @@ const ReturnPage = () => {
             <Text style={_styles.labelText}>Barcode</Text>
           </View>
           <View style={_styles.cell}>
-            <TextInput style={_styles.valueText} value={_items.barcode} onChangeText={setBarcode} />
+            <TextInput
+              style={_styles.valueText}
+              value={_items.barcode}
+              onChangeText={setBarcode}
+            />
           </View>
         </View>
 
@@ -499,8 +537,11 @@ const ReturnPage = () => {
                 data={_suggestions}
                 keyExtractor={(item) => item.item_Code}
                 renderItem={({ item }) => (
-                  <TouchableOpacity onPress={() => GetItem(item)} style={_styles.suggestionItem}>
-                    <Text style={_styles.suggestionText} >{item.descrip}</Text>
+                  <TouchableOpacity
+                    onPress={() => GetItem(item)}
+                    style={_styles.suggestionItem}
+                  >
+                    <Text style={_styles.suggestionText}>{item.descrip}</Text>
                   </TouchableOpacity>
                 )}
                 style={_styles.suggestionsList}
@@ -516,7 +557,13 @@ const ReturnPage = () => {
             <Text style={_styles.labelText}>Return Item</Text>
           </View>
           <View style={_styles.cell}>
-            <TextInput style={[_styles.inputTextBox /*, { width: 140 }*/]} value={_retunQty} onChangeText={setReturnQty} ref={inputRef} keyboardType="numeric" />
+            <TextInput
+              style={[_styles.inputTextBox /*, { width: 140 }*/]}
+              value={_retunQty}
+              onChangeText={setReturnQty}
+              ref={inputRef}
+              keyboardType="numeric"
+            />
           </View>
         </View>
 
@@ -536,15 +583,27 @@ const ReturnPage = () => {
           </View> */}
 
           <View style={{ width: 120, padding: 2 }}>
-            <Button title="Clear" onPress={clearForm} />
+            <TouchableOpacity style={_styles.clearButton} onPress={clearForm}>
+              <Text style={_styles.buttonText}>Clear</Text>
+            </TouchableOpacity>
           </View>
 
           <View style={{ width: 120, padding: 2 }}>
-            <Button title="Scan" onPress={() => setScanning(true)} />
+            <TouchableOpacity
+              style={_styles.scanButton}
+              onPress={() => setScanning(true)}
+            >
+              <Text style={_styles.buttonText}>Scan</Text>
+            </TouchableOpacity>
           </View>
 
           <View style={{ width: 120, padding: 2 }}>
-            <Button title="Add" onPress={() => ConfirmReturnItem('ADD')} />
+            <TouchableOpacity
+              style={_styles.addLinkButton}
+              onPress={() => ConfirmReturnItem("ADD")}
+            >
+              <Text style={_styles.buttonText}>Add</Text>
+            </TouchableOpacity>
           </View>
 
           {/* Barcode scan popup */}
@@ -561,7 +620,6 @@ const ReturnPage = () => {
               </View>
             </View>
           </Modal>
-
         </View>
       </View>
 
@@ -582,7 +640,12 @@ const ReturnPage = () => {
             </TouchableOpacity>
           </View>
           <View style={_styles.cell}>
-            <Button title='Load' onPress={() => GetReturnItemListBySuppCode(_suppCode)}></Button>
+            <TouchableOpacity
+              style={_styles.addLinkButton}
+              onPress={() => GetReturnItemListBySuppCode(_suppCode)}
+            >
+              <Text style={_styles.buttonText}>Load</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -604,13 +667,22 @@ const ReturnPage = () => {
                 data={_suppSuggestions}
                 keyExtractor={(item) => item.supp_Code}
                 renderItem={({ item }) => (
-                  <TouchableOpacity onPress={() => GetSupplier(item)} style={_styles.suggestionItem}>
-                    <Text style={_styles.suggestionText} > {item.supp_Code} - {item.supp_Name}</Text>
+                  <TouchableOpacity
+                    onPress={() => GetSupplier(item)}
+                    style={_styles.suggestionItem}
+                  >
+                    <Text style={_styles.suggestionText}>
+                      {" "}
+                      {item.supp_Code} - {item.supp_Name}
+                    </Text>
                   </TouchableOpacity>
                 )}
                 style={_styles.suggestionsList}
               />
-              <Button title="Close" onPress={() => setsuppModalVisible(false)} />
+              <Button
+                title="Close"
+                onPress={() => setsuppModalVisible(false)}
+              />
             </View>
           </View>
         </Modal>
@@ -623,31 +695,38 @@ const ReturnPage = () => {
       <View>
         <View style={_styles.vw_2}>
           <View style={{ width: 120, padding: 2 }}>
-            <Button title='Delete' onPress={DeleteItems}></Button>
+            <TouchableOpacity
+              style={_styles.deleteButton}
+              onPress={DeleteItems}
+            >
+              <Text style={_styles.buttonText}>Delete</Text>
+            </TouchableOpacity>
           </View>
           <View style={{ width: 150, padding: 2 }}>
-            <Button title="Return" onPress={UpdateItemsAsReturned} />
+            <TouchableOpacity
+              style={_styles.addLinkButton}
+              onPress={UpdateItemsAsReturned}
+            >
+              <Text style={_styles.buttonText}>Return</Text>
+            </TouchableOpacity>
           </View>
           <View style={{ width: 120, padding: 2 }}>
-            <Button title='Process' onPress={ProcessSelectedItems}></Button>
+            <TouchableOpacity
+              style={_styles.scanButton}
+              onPress={ProcessSelectedItems}
+            >
+              <Text style={_styles.buttonText}>Process</Text>
+            </TouchableOpacity>
           </View>
-
         </View>
       </View>
-
     </View>
-  )
-}
+  );
+};
 
 const _styles = StyleSheet.create({
   returnGridContainer: {
-    //flex: 0.6,
-    //padding: 0,
     height: 250,
-    //width: 1000,
-    // backgroundColor: 'grey',
-    //borderWidth: 5,
-
   },
   container: {
     flex: 1,
@@ -655,103 +734,133 @@ const _styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 10,
-    textAlign: 'center',
+    textAlign: "center",
   },
   row: {
-    flexDirection: 'row', // Arrange cells horizontally
+    flexDirection: "row", // Arrange cells horizontally
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+    borderBottomColor: "#ddd",
     paddingVertical: 5,
   },
   cell: {
     flex: 1, // Each cell takes up 50% of the row's width
-    justifyContent: 'center',
+    justifyContent: "center",
     paddingHorizontal: 5,
   },
   labelText: {
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
   },
   valueText: {
-    color: '#555',
+    color: "#555",
   },
   modalContainer_2: {
     flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-
+    justifyContent: "flex-start",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   popup_2: {
-    width: '90%',
-    height: '70%',
+    width: "90%",
+    height: "70%",
     marginTop: 60,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 0,
     padding: 5,
-    alignItems: 'center',
+    alignItems: "center",
   },
   searchInput: {
-    borderColor: 'gray',
+    borderColor: "gray",
     borderWidth: 1,
-    width: '100%',
+    width: "100%",
     padding: 10,
     marginBottom: 10,
-  }, suggestionItem: {
-    backgroundColor: 'white',
+  },
+  suggestionItem: {
+    backgroundColor: "white",
     padding: 2,
     //borderRadius: 8,
     marginBottom: 4,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 1, // For Android shadow
   },
   suggestionText: {
-    color: '#333',
+    color: "#333",
     fontSize: 15,
   },
   suggestionsList: {
-    width: '100%',
+    width: "100%",
     // maxHeight: 200, // Limit the height of the list
     borderTopWidth: 1,
-    borderTopColor: '#ddd',
+    borderTopColor: "#ddd",
     marginTop: 10,
   },
   vw_2: {
     //backgroundColor: 'blue',
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
     flexDirection: "row",
-    alignItems: 'flex-end'
+    alignItems: "flex-end",
   },
   modalContainer: {
     flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: "flex-start",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   popup: {
-    width: '90%',
-    height: '40%',
+    width: "90%",
+    height: "45%",
     marginTop: 60,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 0,
     padding: 5,
-    alignItems: 'center',
+    alignItems: "center",
   },
 
   inputTextBox: {
-    borderColor: 'gray',
+    borderColor: "gray",
     borderWidth: 1,
     fontSize: 18,
-    fontWeight: 'bold',
-
+    fontWeight: "bold",
   },
-
-
+  scanButton: {
+    backgroundColor: "#007BFF",
+    padding: 10,
+    borderRadius: 5,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  clearButton: {
+    padding: 10,
+    borderRadius: 5,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#DC3545",
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  addLinkButton: {
+    backgroundColor: "#28a745",
+    padding: 10,
+    borderRadius: 5,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  deleteButton: {
+    backgroundColor: "#DC3545",
+    padding: 10,
+    borderRadius: 5,
+    justifyContent: "center",
+    alignItems: "center",
+  },
 });
 
-export default ReturnPage
+export default ReturnPage;
