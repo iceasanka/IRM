@@ -23,6 +23,11 @@ const apiPosStock = axios.create({
   baseURL: `http://${_host}:${_port}/api/PosStock`,
 });
 
+const apiPosCountedStock = axios.create({
+  baseURL: `http://${_host}:${_port}/api/PosCountedStock`,
+});
+
+
 
 export const apigetItemWithDetailsByBarcode = (barcode) => {
   const url = `/GetItemWithDetailsByBarcode?barcode=${barcode}`;
@@ -92,6 +97,17 @@ export function apigetPosStockByItemCode(_itemcode) {
   const url =`/GetPosStock?itemCode=${_itemcode}`;
   return apiPosStock.get(url);
 }
+
+export function deleteAllPosCountedStock() {
+  const url = '/DeleteAll';
+  return apiPosCountedStock.post(url);
+}
+
+export function deletePosCountedStockByItemCode(itemCode) {
+  const url = `/DeleteByItemCode?itemCode=${itemCode}`;
+  return apiPosCountedStock.post(url);
+}
+
 
 
 

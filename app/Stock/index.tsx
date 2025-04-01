@@ -19,6 +19,8 @@ import {
   apigetItemByDescription,
   getPriceLink,
   apigetPosStockByItemCode,
+  deleteAllPosCountedStock,
+  deletePosCountedStockByItemCode,
 } from "../../api.js";
 
 const StockPage = () => {
@@ -136,12 +138,14 @@ const StockPage = () => {
         Id: id,
         Stock: parseFloat(totalStock),
         item: items,
+        CountedStock: isOn ? parseFloat(posStock) : 0,
       });
 
       fetchStock(itemCode);
 
       setAddOpStock("");
       setTotalStock("");
+      setPosStock("0");
     } catch (error) {
       console.error(error);
     }
@@ -233,6 +237,58 @@ const StockPage = () => {
       setTotalStock(parseFloat(addOpStock).toString());
     }
   };
+  function confirmFlushData(): void {
+    Alert.alert(
+      "Confirmation",
+      "Do you want to Flush the data?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        { text: "OK", onPress: () => handleFlushData() },
+      ],
+      { cancelable: false }
+    );
+  }
+
+  async function handleFlushData(): Promise<void> {
+    try {
+      const response = await deleteAllPosCountedStock();
+      Alert.alert("Data flushed successfully!");
+      clearForm();
+    } catch (error) {
+      console.error(error);
+    }
+    // Implement your flush data logic here
+  }
+
+  function confirmFlushItem(item_Code: any): void {
+    Alert.alert(
+      "Confirmation",
+      "Do you want to Flush the Item?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        { text: "OK", onPress: () => handleFlushItem(item_Code) },
+      ],
+      { cancelable: false }
+    );
+  }
+  async function handleFlushItem(item_Code: any): Promise<void> {
+    try {
+      const response = await deletePosCountedStockByItemCode(item_Code);
+      Alert.alert("Item flushed successfully!");
+      clearForm();
+    } catch (error) {
+      console.error(error);
+    }
+    // Implement your flush data logic here
+  }
+  // Function to handle the suggestion press
+
   return (
     <SafeAreaView>
       <ScrollView keyboardShouldPersistTaps="always">
@@ -471,6 +527,26 @@ const StockPage = () => {
                 onPress={() => setScanning(true)}
               >
                 <Text style={styles.buttonText}>Scan</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.vw_2}>
+            <View style={{ width: 120, padding: 2 }}>
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => confirmFlushData()}
+              >
+                <Text style={styles.buttonText}>Flush Data</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ width: 120, padding: 2 }}>
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => confirmFlushItem(items.item_Code)}
+              >
+                <Text style={styles.buttonText}>Flush Item</Text>
               </TouchableOpacity>
             </View>
           </View>
