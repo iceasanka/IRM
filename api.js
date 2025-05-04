@@ -108,6 +108,33 @@ export function deletePosCountedStockByItemCode(itemCode) {
   return apiPosCountedStock.post(url);
 }
 
+const apiGrn = axios.create({
+  baseURL: `http://${_host}:${_port}/api/GrnTemp`,
+});
+
+export function apiAddGrn(data) {
+  
+  const url = '/AddGrnTemp';
+
+  //console.log('apiAddGrn', data);
+   // const fullUrl = `${apiGrn.defaults.baseURL}${url}`;
+  //console.log(fullUrl);
+
+  return apiGrn.post(url, data);;
+}
+
+export function apiDeleteGrn(id) {
+  const url = `/DeleteGrnTemp/${id}`;
+  return apiGrn.delete(url);
+}
+
+//GetGrnTempByGrnReferenceAndStatus
+export function apiGetGrnTempByGrnReferenceAndStatus(grnReference, status) {
+  const url = `/GetGrnTempByGrnReferenceAndStatus?grnReference=${grnReference}&status=${status}`;
+  return apiGrn.get(url);
+}
+
+
 
 
 

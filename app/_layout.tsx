@@ -28,6 +28,12 @@ const RootLayout = () => {
           headerTitle: "PriceLink",
         }}
       />
+      <Stack.Screen
+        name="GRN/index"
+        options={{
+          headerTitle: "GRN",
+        }}
+      />
     </Stack>
   );
 };

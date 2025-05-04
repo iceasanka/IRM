@@ -24,6 +24,9 @@ Shift + Alt + A - block comment /uncomment
 -------------------------------how to build
 eas build --profile production --platform android
 
+--------------------------------how to run 
+npx expo start
+
 -------------------------------
 4791111100432-
 -------------------------------

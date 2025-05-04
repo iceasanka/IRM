@@ -26,6 +26,13 @@ const HomePage = () => {
       >
         <Text style={styles.buttonText}>Price Link</Text>
       </Pressable>
+
+      <Pressable
+        style={styles.addLinkButton}
+        onPress={() => router.push("/GRN")}
+      >
+        <Text style={styles.buttonText}>GRN</Text>
+      </Pressable>
     </View>
   );
 };
