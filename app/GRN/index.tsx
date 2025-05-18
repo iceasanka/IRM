@@ -36,6 +36,8 @@ const GrnPage: React.FC = () => {
   });
   const [_returnItems, setReturnItems] = useState<ReturnItem[]>([]);
   const qtyInputRef = useRef<TextInput>(null);
+  const itemRefCounter = useRef<number>(1);
+  const [successMessage, setSuccessMessage] = useState("");
 
   interface ReturnItem {
     id: number;
@@ -75,7 +77,7 @@ const GrnPage: React.FC = () => {
       if (data) {
         setItemDetails(data);
         setFormValues({
-          ItemRefCode: "", // Reset ItemRefCode
+          ItemRefCode: itemRefCounter.current.toString(), // Reset ItemRefCode
           CostPrice: "",
           ERetPrice: "",
           Qty: "",
@@ -137,8 +139,12 @@ const GrnPage: React.FC = () => {
       };
 
       setReturnItems((prevItems) => [...prevItems, _item]);
+      itemRefCounter.current += 1;
 
-      Alert.alert("Success", _response.data.message);
+      //Alert.alert("Success", _response.data.message);
+      // toast.success(_response.data.message);
+      setSuccessMessage(_response.data.message);
+      setTimeout(() => setSuccessMessage(""), 2000); // Hide after 3 seconds
 
       clearForm();
     } catch (error) {
@@ -176,6 +182,7 @@ const GrnPage: React.FC = () => {
     setSupplier({});
     setSuppCode("");
     setSuppSuggestions([]);
+    itemRefCounter.current = 1;
   };
 
   function DeleteItems(event: GestureResponderEvent): void {
@@ -346,7 +353,6 @@ const GrnPage: React.FC = () => {
 
           <View style={styles.cell}>
             <TextInput
-              ref={itemRefInputRef} // Attach the ref to the ItemRefCode input
               style={styles.inputTextBox}
               value={formValues.ItemRefCode}
               returnKeyType="next"
@@ -365,7 +371,8 @@ const GrnPage: React.FC = () => {
 
           <View style={styles.cell}>
             <TextInput
-              ref={qtyInputRef}
+              //ref={qtyInputRef}
+              ref={itemRefInputRef} // Attach the ref to the ItemRefCode input
               style={styles.inputTextBox}
               value={formValues.Qty}
               keyboardType="numeric"
@@ -410,6 +417,14 @@ const GrnPage: React.FC = () => {
         </View>
       </Modal>
 
+      {successMessage ? (
+        <Text
+          style={{ color: "green", fontWeight: "bold", textAlign: "center" }}
+        >
+          {successMessage}
+        </Text>
+      ) : null}
+
       {/* Supplier search */}
       <View style={styles.row}>
         <View style={styles.cell}>
@@ -427,7 +442,7 @@ const GrnPage: React.FC = () => {
         </View>
         <View style={styles.cell}>
           <TouchableOpacity
-            style={styles.saveButton}
+            style={styles.loadButton}
             onPress={() => GetGrnItemsByGrnRef(_suppCode)}
           >
             <Text style={styles.buttonText}>Load</Text>
@@ -570,6 +585,14 @@ const styles = StyleSheet.create({
     fontWeight: "bold", // Text weight
   },
   saveButton: {
+    backgroundColor: "#28a745", // Green background
+    borderRadius: 10, // Rounded corners
+    justifyContent: "center",
+    alignItems: "center",
+    width: 100, // Fixed width
+    height: 100, // Fixed height
+  },
+  loadButton: {
     backgroundColor: "#28a745", // Green background
     borderRadius: 10, // Rounded corners
     justifyContent: "center",
