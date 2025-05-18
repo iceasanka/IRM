@@ -10,8 +10,10 @@ import {
   StyleSheet,
   Modal,
   GestureResponderEvent,
+  Dimensions,
+  ScrollView,
 } from "react-native";
-import BarcodeScanner from "../../BarcodeScanner.js";
+import BarcodeScanner from "../../BarcodeScanner_2.js";
 import {
   apigetItemWithDetailsByBarcode,
   apiAddGrn,
@@ -37,7 +39,8 @@ const GrnPage: React.FC = () => {
   const [_returnItems, setReturnItems] = useState<ReturnItem[]>([]);
   const qtyInputRef = useRef<TextInput>(null);
   const itemRefCounter = useRef<number>(1);
-  const [successMessage, setSuccessMessage] = useState("");
+  //const [successMessage, setSuccessMessage] = useState("");
+  const [message, setmessage] = useState("");
 
   interface ReturnItem {
     id: number;
@@ -57,6 +60,7 @@ const GrnPage: React.FC = () => {
   const [_suppSuggestions, setSuppSuggestions] = useState([]);
   const [_suppCode, setSuppCode] = useState("");
   const [_supplier, setSupplier] = useState({});
+  const lastScannedRef = useRef<string | null>(null); // add this above
 
   useEffect(() => {
     if (barcode) {
@@ -65,8 +69,20 @@ const GrnPage: React.FC = () => {
   }, [barcode]);
 
   const handleScan = (scannedData: string) => {
+    if (scannedData === lastScannedRef.current) {
+      //console.log("Same barcode scanned consecutively. Ignoring.");
+      setmessage("Same barcode scanned consecutively. Ignoring.");
+      setTimeout(() => setmessage(""), 2000);
+      return;
+    }
+    lastScannedRef.current = scannedData; // Update last scanned
+
     setBarcode(scannedData);
-    setScanning(false);
+
+    setmessage(scannedData);
+    setTimeout(() => setmessage(""), 3000);
+    //console.log("Scanned barcode:", scannedData); // Log the scanned barcode
+    // setScanning(false); // Remove this
   };
 
   const fetchItemDetails = async (barcode: string) => {
@@ -143,8 +159,8 @@ const GrnPage: React.FC = () => {
 
       //Alert.alert("Success", _response.data.message);
       // toast.success(_response.data.message);
-      setSuccessMessage(_response.data.message);
-      setTimeout(() => setSuccessMessage(""), 2000); // Hide after 3 seconds
+      setmessage(_response.data.message);
+      setTimeout(() => setmessage(""), 2000); // Hide after 3 seconds
 
       clearForm();
     } catch (error) {
@@ -169,7 +185,7 @@ const GrnPage: React.FC = () => {
       ERetPrice: "",
       Qty: "",
     });
-
+    lastScannedRef.current = null; // Reset last scanned reference
     // Focus on the ItemRefCode input after clearing the form
     setTimeout(() => {
       itemRefInputRef.current?.focus();
@@ -285,7 +301,25 @@ const GrnPage: React.FC = () => {
   };
 
   return (
+    //<ScrollView>
     <View style={styles.container}>
+      {/* Barcode scanner always at the top */}
+      <View style={styles.barcodeScannerContainer}>
+        <BarcodeScanner onScan={handleScan} />
+      </View>
+      <View style={styles.priceLinkRow}>
+        {message ? (
+          <Text
+            style={{
+              color: "green",
+              fontWeight: "bold",
+              textAlign: "center",
+            }}
+          >
+            {message}
+          </Text>
+        ) : null}
+      </View>
       <View>
         <View style={[styles.row, , { backgroundColor: "#e9e9e9" }]}>
           <View style={styles.cell}>
@@ -386,6 +420,10 @@ const GrnPage: React.FC = () => {
 
       {/* Bar code scaner function */}
       <View style={styles.rightButtonContainer}>
+        <TouchableOpacity style={styles.deleteButton} onPress={DeleteItems}>
+          <Text style={styles.buttonText}>Delete</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity style={styles.clearButton} onPress={clearAllForm}>
           <Text style={styles.buttonText}>Clear All</Text>
         </TouchableOpacity>
@@ -395,15 +433,14 @@ const GrnPage: React.FC = () => {
         <TouchableOpacity style={styles.saveButton} onPress={saveTempGrn}>
           <Text style={styles.buttonText}>Save</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={styles.scanButton}
           onPress={() => setScanning(true)}
         >
           <Text style={styles.buttonText}>Scan</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
-      <Modal
+      {/* <Modal
         visible={scanning}
         transparent={true}
         animationType="slide"
@@ -415,15 +452,14 @@ const GrnPage: React.FC = () => {
             <Button title="Close" onPress={() => setScanning(false)} />
           </View>
         </View>
-      </Modal>
-
-      {successMessage ? (
+      </Modal> */}
+      {/* {successMessage ? (
         <Text
           style={{ color: "green", fontWeight: "bold", textAlign: "center" }}
         >
           {successMessage}
         </Text>
-      ) : null}
+      ) : null} */}
 
       {/* Supplier search */}
       <View style={styles.row}>
@@ -489,14 +525,15 @@ const GrnPage: React.FC = () => {
         <GrnList data={_returnItems} toggleSelect={toggleSelect} />
       </View>
 
-      <View style={styles.vw_2}>
+      {/* <View style={styles.vw_2}>
         <View style={{ width: 120, padding: 2 }}>
           <TouchableOpacity style={styles.deleteButton} onPress={DeleteItems}>
             <Text style={styles.buttonText}>Delete</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </View> */}
     </View>
+    //</ScrollView>
   );
 };
 
@@ -535,7 +572,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 5,
+    marginBottom: 0,
+    height: 20,
   },
   priceText: {
     flex: 1,
@@ -574,7 +612,7 @@ const styles = StyleSheet.create({
   clearButton: {
     width: 100, // Fixed width
     height: 50, // Fixed height
-    backgroundColor: "#DC3545", // Background color
+    backgroundColor: "#aaaaee", // Background color
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 10, // Rounded corners
@@ -602,10 +640,12 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     backgroundColor: "#DC3545", // Red background
-    padding: 10, // Padding
-    borderRadius: 5, // Rounded corners
+    padding: 0, // Padding
+    borderRadius: 0, // Rounded corners
     justifyContent: "center",
     alignItems: "center",
+    width: 100, // Fixed width
+    height: 50, // Fixed height
   },
   returnGridContainer: {
     height: 250,
@@ -660,6 +700,16 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#ddd",
     marginTop: 10,
+  },
+  barcodeScannerContainer: {
+    width: "100%",
+    height: 120, // or 30 if you prefer
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 0,
+    backgroundColor: "#f5f5f5",
+    borderRadius: 8,
+    overflow: "hidden",
   },
 });
 
