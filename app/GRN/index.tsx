@@ -451,6 +451,8 @@ const GrnPage: React.FC = () => {
             <BarcodeScanner onScan={handleScan} />
             <Button title="Close" onPress={() => setScanning(false)} />
           </View>
+
+          
         </View>
       </Modal> */}
       {/* {successMessage ? (
