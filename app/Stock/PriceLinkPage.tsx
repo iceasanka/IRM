@@ -14,6 +14,7 @@ import {
   apigetItemWithDetailsByBarcode,
   getPriceLink,
   addPriceLink,
+  updateItemRetPrice,
 } from "../../api";
 
 const PriceLinkPage = () => {
@@ -26,6 +27,7 @@ const PriceLinkPage = () => {
   const [priceLinks, setPriceLinks] = useState<{ price: number }[]>([]);
   const [newPrice, setNewPrice] = useState("");
   const inputRef = useRef(null);
+  const [eRetPrice, seteRetPrice] = useState(0);
 
   useEffect(() => {
     if (barcode) {
@@ -46,6 +48,7 @@ const PriceLinkPage = () => {
         setItemCode(data.item_Code);
         setItemDescrip(data.descrip);
         setCostPrice(data.cost_Price);
+        seteRetPrice(data.eRet_Price);
         setPackSize(data.pack_Size);
         fetchPriceLinks(data.item_Code);
       } else {
@@ -112,11 +115,22 @@ const PriceLinkPage = () => {
     }
   };
 
+  const handleSaveRetPrice = async () => {
+    try {
+      await updateItemRetPrice(itemCode, eRetPrice);
+      alert("Item Price updated successfully.");
+    } catch (error) {
+      console.error("Failed to update item price:", error);
+      alert("Failed to update item price.");
+    }
+  };
+
   const clearForm = () => {
     setBarcode("");
     setItemCode("");
     setItemDescrip("");
     setCostPrice(0);
+    seteRetPrice(0);
     setPackSize(1);
     setPriceLinks([]);
     setNewPrice("");
@@ -161,6 +175,30 @@ const PriceLinkPage = () => {
               value={itemDescrip}
               editable={false}
             />
+          </View>
+        </View>
+
+        <View style={styles.row}>
+          <View style={styles.cell}>
+            <Text style={styles.labelText}>Item Price</Text>
+          </View>
+          <View style={{ flexDirection: "row", flex: 1 }}>
+            <View style={{ flex: 1, paddingRight: 5 }}>
+              <TextInput
+                style={[styles.inputTextBox, {}]}
+                value={eRetPrice.toString()}
+                keyboardType="numeric"
+                onChangeText={(text) => seteRetPrice(Number(text))}
+              />
+            </View>
+            <View style={{}}>
+              <TouchableOpacity
+                style={styles.addLinkButton}
+                onPress={handleSaveRetPrice}
+              >
+                <Text style={{ color: "white", fontWeight: "bold" }}>Save</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
@@ -274,6 +312,11 @@ const styles = StyleSheet.create({
   cell: {
     flex: 1, // Each cell takes up 50% of the row's width
     justifyContent: "center",
+    paddingHorizontal: 3,
+  },
+  cell2: {
+    flex: 1, // Each cell takes up 50% of the row's width
+    //justifyContent: "center",
     paddingHorizontal: 3,
   },
   labelText: {

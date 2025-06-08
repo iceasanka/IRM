@@ -20,6 +20,7 @@ import {
   apiDeleteGrn,
   apigetSuppByDescription,
   apiGetGrnTempByGrnReferenceAndStatus,
+  getPriceLink,
 } from "../../api.js";
 import GrnList from "./GrnList.js";
 
@@ -61,12 +62,23 @@ const GrnPage: React.FC = () => {
   const [_suppCode, setSuppCode] = useState("");
   const [_supplier, setSupplier] = useState({});
   const lastScannedRef = useRef<string | null>(null); // add this above
+  const [priceLinks, setPriceLinks] = useState<{ price: number }[]>([]);
 
   useEffect(() => {
     if (barcode) {
       fetchItemDetails(barcode);
     }
   }, [barcode]);
+
+  const fetchPriceLinks = async (itemCode: string) => {
+    try {
+      const response = await getPriceLink(itemCode);
+      setPriceLinks(response.data);
+      //console.log("Price links fetched:", response.data); // Log the price links
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const handleScan = (scannedData: string) => {
     if (scannedData === lastScannedRef.current) {
@@ -92,6 +104,7 @@ const GrnPage: React.FC = () => {
       //console.log("Item details:", data); // Log the item details
       if (data) {
         setItemDetails(data);
+        // console.log("Item details fetched:", data); // Log the item details
         setFormValues({
           ItemRefCode: itemRefCounter.current.toString(), // Reset ItemRefCode
           CostPrice: "",
@@ -99,7 +112,7 @@ const GrnPage: React.FC = () => {
           Qty: "",
         });
         setSuppCode(response.data.supp_Code);
-
+        fetchPriceLinks(data.item_Code); // Fetch price links for the item
         // Focus on the ItemRefCode input after receiving item details
         setTimeout(() => {
           itemRefInputRef.current?.focus();
@@ -186,6 +199,7 @@ const GrnPage: React.FC = () => {
       Qty: "",
     });
     lastScannedRef.current = null; // Reset last scanned reference
+    setPriceLinks([]);
     // Focus on the ItemRefCode input after clearing the form
     setTimeout(() => {
       itemRefInputRef.current?.focus();
@@ -307,7 +321,7 @@ const GrnPage: React.FC = () => {
       <View style={styles.barcodeScannerContainer}>
         <BarcodeScanner onScan={handleScan} />
       </View>
-      <View style={styles.priceLinkRow}>
+      <View style={styles.messageArea}>
         {message ? (
           <Text
             style={{
@@ -325,7 +339,7 @@ const GrnPage: React.FC = () => {
           <View style={styles.cell}>
             <Text style={styles.labelText}>Bar code</Text>
           </View>
-          <View style={styles.cell}>
+          <View style={styles.cell2}>
             <TextInput
               style={styles.valueText}
               value={itemDetails?.barcode || ""}
@@ -338,7 +352,7 @@ const GrnPage: React.FC = () => {
           <View style={styles.cell}>
             <Text style={styles.labelText}>Des.</Text>
           </View>
-          <View style={styles.cell}>
+          <View style={styles.cell2}>
             <TextInput
               style={styles.valueText}
               value={itemDetails?.descrip || ""}
@@ -347,35 +361,50 @@ const GrnPage: React.FC = () => {
           </View>
         </View>
 
-        <View style={styles.row}>
-          <View style={styles.cell}>
-            <Text style={styles.labelText}>ERet Price</Text>
-          </View>
-          <View style={styles.cell}>
-            <TextInput
-              style={styles.inputTextBox}
-              value={formValues.ERetPrice}
-              keyboardType="numeric"
-              onChangeText={(text) =>
-                setFormValues({ ...formValues, ERetPrice: text })
-              }
-            />
-          </View>
-        </View>
         {/* Cost Price */}
         <View style={styles.row}>
           <View style={styles.cell}>
             <Text style={styles.labelText}>Cost Price</Text>
           </View>
+          <View style={styles.cell2}>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <TextInput
+                style={[styles.inputTextBox, { flex: 1, marginRight: 5 }]}
+                keyboardType="numeric"
+                value={formValues.CostPrice}
+                onChangeText={(text) =>
+                  setFormValues({ ...formValues, CostPrice: text })
+                }
+              />
+              <Text style={{ flex: 2, fontWeight: "bold", fontSize: 20 }}>
+                {itemDetails?.cost_Price ?? ""}
+              </Text>
+            </View>
+          </View>
+        </View>
+        <View style={styles.row}>
           <View style={styles.cell}>
-            <TextInput
-              style={styles.inputTextBox}
-              keyboardType="numeric"
-              value={formValues.CostPrice}
-              onChangeText={(text) =>
-                setFormValues({ ...formValues, CostPrice: text })
-              }
-            />
+            <Text style={styles.labelText}>ERet Price</Text>
+          </View>
+          <View style={styles.cell2}>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <TextInput
+                style={[styles.inputTextBox, { flex: 1, marginRight: 5 }]}
+                value={formValues.ERetPrice}
+                keyboardType="numeric"
+                onChangeText={(text) =>
+                  setFormValues({ ...formValues, ERetPrice: text })
+                }
+              />
+              <Text style={{ flex: 2, fontWeight: "bold", fontSize: 20 }}>
+                {itemDetails?.eRet_Price ?? ""}
+                {priceLinks.length > 0 && (
+                  <Text style={{ color: "green" }}>
+                    {" | " + priceLinks.map((p) => p.price).join(" | ")}
+                  </Text>
+                )}
+              </Text>
+            </View>
           </View>
         </View>
 
@@ -385,7 +414,7 @@ const GrnPage: React.FC = () => {
             <Text style={styles.labelText}>Item Ref</Text>
           </View>
 
-          <View style={styles.cell}>
+          <View style={styles.cell2}>
             <TextInput
               style={styles.inputTextBox}
               value={formValues.ItemRefCode}
@@ -403,7 +432,7 @@ const GrnPage: React.FC = () => {
             <Text style={styles.labelText}>Qty</Text>
           </View>
 
-          <View style={styles.cell}>
+          <View style={styles.cell2}>
             <TextInput
               //ref={qtyInputRef}
               ref={itemRefInputRef} // Attach the ref to the ItemRefCode input
@@ -433,35 +462,7 @@ const GrnPage: React.FC = () => {
         <TouchableOpacity style={styles.saveButton} onPress={saveTempGrn}>
           <Text style={styles.buttonText}>Save</Text>
         </TouchableOpacity>
-        {/* <TouchableOpacity
-          style={styles.scanButton}
-          onPress={() => setScanning(true)}
-        >
-          <Text style={styles.buttonText}>Scan</Text>
-        </TouchableOpacity> */}
       </View>
-      {/* <Modal
-        visible={scanning}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setScanning(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.popup}>
-            <BarcodeScanner onScan={handleScan} />
-            <Button title="Close" onPress={() => setScanning(false)} />
-          </View>
-
-          
-        </View>
-      </Modal> */}
-      {/* {successMessage ? (
-        <Text
-          style={{ color: "green", fontWeight: "bold", textAlign: "center" }}
-        >
-          {successMessage}
-        </Text>
-      ) : null} */}
 
       {/* Supplier search */}
       <View style={styles.row}>
@@ -526,14 +527,6 @@ const GrnPage: React.FC = () => {
       <View style={styles.returnGridContainer}>
         <GrnList data={_returnItems} toggleSelect={toggleSelect} />
       </View>
-
-      {/* <View style={styles.vw_2}>
-        <View style={{ width: 120, padding: 2 }}>
-          <TouchableOpacity style={styles.deleteButton} onPress={DeleteItems}>
-            <Text style={styles.buttonText}>Delete</Text>
-          </TouchableOpacity>
-        </View>
-      </View> */}
     </View>
     //</ScrollView>
   );
@@ -545,13 +538,19 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   row: {
+    // flex: 1,
     flexDirection: "row", // Arrange cells horizontally
     borderBottomWidth: 1,
     borderBottomColor: "#ddd",
     paddingVertical: 3,
   },
   cell: {
-    flex: 1, // Each cell takes up 50% of the row's width
+    flex: 0.8, // Each cell takes up 50% of the row's width
+    justifyContent: "center",
+    paddingHorizontal: 3,
+  },
+  cell2: {
+    flex: 3, // Each cell takes up 50% of the row's width
     justifyContent: "center",
     paddingHorizontal: 3,
   },
@@ -570,7 +569,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
 
-  priceLinkRow: {
+  messageArea: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",

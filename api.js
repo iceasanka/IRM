@@ -49,6 +49,13 @@ export const addPriceLink = (data) => {
   return api.post(url, data);
 };
 
+export const updateItemRetPrice = (itemCode, eRetPrice) => {
+  const url = "/UpdateItemRetPrice";
+  const data = { itemCode, eRetPrice };
+  return api.post(url, data);
+};
+
+
 export function apigetStockByItemCode(_itemcode) {
   return apiStock.get(`/GetStock?itemcode=${_itemcode}`);
 }
