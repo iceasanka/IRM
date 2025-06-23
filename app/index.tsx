@@ -22,7 +22,7 @@ const HomePage = () => {
 
       <Pressable
         style={styles.addLinkButton}
-        onPress={() => router.push("/Stock/PriceLinkPage")}
+        onPress={() => router.push("/PriceLink/PriceLinkPage")}
       >
         <Text style={styles.buttonText}>Price Link</Text>
       </Pressable>

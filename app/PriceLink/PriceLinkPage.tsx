@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import BarcodeScanner from "../../BarcodeScanner_2.js";
-import styles from "./PriceLinkPageStyles.js";
+import styles from "./PriceLinkPageStyles";
 import usePriceLinkPageLogic from "./PriceLinkPageLogic";
 
 const PriceLinkPage = () => {

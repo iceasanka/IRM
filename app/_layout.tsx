@@ -23,7 +23,7 @@ const RootLayout = () => {
         }}
       />
       <Stack.Screen
-        name="Stock/PriceLinkPage"
+        name="PriceLink/PriceLinkPage"
         options={{
           headerTitle: "PriceLink",
         }}
