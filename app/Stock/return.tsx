@@ -26,6 +26,7 @@ import {
   apiDeleteItemById,
 } from "../../api.js";
 import RetunItemListPage from "./RetunItemListPage.js";
+import returnStyles from "./returnStyles";
 
 const ReturnPage = () => {
   const [_modalVisible, setModalVisible] = useState(false);
@@ -474,26 +475,29 @@ const ReturnPage = () => {
   };
 
   return (
-    <View style={_styles.container}>
+    <View style={returnStyles.container}>
       <View>
         {/* Itemcode */}
-        <View style={_styles.row}>
-          <View style={_styles.cell}>
-            <Text style={_styles.labelText}>Item Code</Text>
+        <View style={returnStyles.row}>
+          <View style={returnStyles.cell}>
+            <Text style={returnStyles.labelText}>Item Code</Text>
           </View>
-          <View style={_styles.cell}>
-            <TextInput style={_styles.valueText} value={_items.item_Code} />
+          <View style={returnStyles.cell}>
+            <TextInput
+              style={returnStyles.valueText}
+              value={_items.item_Code}
+            />
           </View>
         </View>
 
         {/* Barcode */}
-        <View style={_styles.row}>
-          <View style={_styles.cell}>
-            <Text style={_styles.labelText}>Barcode</Text>
+        <View style={returnStyles.row}>
+          <View style={returnStyles.cell}>
+            <Text style={returnStyles.labelText}>Barcode</Text>
           </View>
-          <View style={_styles.cell}>
+          <View style={returnStyles.cell}>
             <TextInput
-              style={_styles.valueText}
+              style={returnStyles.valueText}
               value={_items.barcode}
               onChangeText={setBarcode}
             />
@@ -501,14 +505,14 @@ const ReturnPage = () => {
         </View>
 
         {/* Description */}
-        <View style={_styles.row}>
-          <View style={_styles.cell}>
-            <Text style={_styles.labelText}>Description</Text>
+        <View style={returnStyles.row}>
+          <View style={returnStyles.cell}>
+            <Text style={returnStyles.labelText}>Description</Text>
           </View>
-          <View style={_styles.cell}>
+          <View style={returnStyles.cell}>
             <TouchableOpacity onPress={() => setModalVisible(true)}>
               <TextInput
-                style={_styles.valueText}
+                style={returnStyles.valueText}
                 value={_description}
                 editable={false}
                 placeholder="Touch to search"
@@ -524,12 +528,11 @@ const ReturnPage = () => {
           animationType="slide"
           onRequestClose={() => setModalVisible(false)}
         >
-          <View style={_styles.modalContainer_2}>
-            <View style={_styles.popup_2}>
+          <View style={returnStyles.modalContainer_2}>
+            <View style={returnStyles.popup_2}>
               <TextInput
                 ref={inputRef2}
-                style={_styles.searchInput}
-                //value={description}
+                style={returnStyles.searchInput}
                 onChangeText={handleDescriptionChange}
                 placeholder="Type to search"
               />
@@ -539,12 +542,14 @@ const ReturnPage = () => {
                 renderItem={({ item }) => (
                   <TouchableOpacity
                     onPress={() => GetItem(item)}
-                    style={_styles.suggestionItem}
+                    style={returnStyles.suggestionItem}
                   >
-                    <Text style={_styles.suggestionText}>{item.descrip}</Text>
+                    <Text style={returnStyles.suggestionText}>
+                      {item.descrip}
+                    </Text>
                   </TouchableOpacity>
                 )}
-                style={_styles.suggestionsList}
+                style={returnStyles.suggestionsList}
               />
               <Button title="Close" onPress={() => setModalVisible(false)} />
             </View>
@@ -552,13 +557,13 @@ const ReturnPage = () => {
         </Modal>
 
         {/* Add return Item */}
-        <View style={_styles.row}>
-          <View style={_styles.cell}>
-            <Text style={_styles.labelText}>Return Item</Text>
+        <View style={returnStyles.row}>
+          <View style={returnStyles.cell}>
+            <Text style={returnStyles.labelText}>Return Item</Text>
           </View>
-          <View style={_styles.cell}>
+          <View style={returnStyles.cell}>
             <TextInput
-              style={[_styles.inputTextBox /*, { width: 140 }*/]}
+              style={[returnStyles.inputTextBox /*, { width: 140 }*/]}
               value={_retunQty}
               onChangeText={setReturnQty}
               ref={inputRef}
@@ -568,41 +573,47 @@ const ReturnPage = () => {
         </View>
 
         {/* Stock */}
-        <View style={_styles.row}>
-          <View style={_styles.cell}>
-            <Text style={_styles.labelText}>Stock</Text>
+        <View style={returnStyles.row}>
+          <View style={returnStyles.cell}>
+            <Text style={returnStyles.labelText}>Stock</Text>
           </View>
-          <View style={_styles.cell}>
-            <TextInput style={_styles.valueText} value={_stock.toString()} />
+          <View style={returnStyles.cell}>
+            <TextInput
+              style={returnStyles.valueText}
+              value={_stock.toString()}
+            />
           </View>
         </View>
 
-        <View style={_styles.vw_2}>
+        <View style={returnStyles.vw_2}>
           {/* <View style={{ width: 120, padding: 2 }}>
             <Button title="Test" onPress={passData} />
           </View> */}
 
           <View style={{ width: 120, padding: 2 }}>
-            <TouchableOpacity style={_styles.clearButton} onPress={clearForm}>
-              <Text style={_styles.buttonText}>Clear</Text>
+            <TouchableOpacity
+              style={returnStyles.clearButton}
+              onPress={clearForm}
+            >
+              <Text style={returnStyles.buttonText}>Clear</Text>
             </TouchableOpacity>
           </View>
 
           <View style={{ width: 120, padding: 2 }}>
             <TouchableOpacity
-              style={_styles.scanButton}
+              style={returnStyles.scanButton}
               onPress={() => setScanning(true)}
             >
-              <Text style={_styles.buttonText}>Scan</Text>
+              <Text style={returnStyles.buttonText}>Scan</Text>
             </TouchableOpacity>
           </View>
 
           <View style={{ width: 120, padding: 2 }}>
             <TouchableOpacity
-              style={_styles.addLinkButton}
+              style={returnStyles.addLinkButton}
               onPress={() => ConfirmReturnItem("ADD")}
             >
-              <Text style={_styles.buttonText}>Add</Text>
+              <Text style={returnStyles.buttonText}>Add</Text>
             </TouchableOpacity>
           </View>
 
@@ -613,8 +624,8 @@ const ReturnPage = () => {
             animationType="slide"
             onRequestClose={() => setScanning(false)}
           >
-            <View style={_styles.modalContainer}>
-              <View style={_styles.popup}>
+            <View style={returnStyles.modalContainer}>
+              <View style={returnStyles.popup}>
                 <BarcodeScanner onScan={handleScan} />
                 <Button title="Close" onPress={() => setScanning(false)} />
               </View>
@@ -625,26 +636,26 @@ const ReturnPage = () => {
 
       <View style={{ marginTop: 20 }}>
         {/* Supplier Search */}
-        <View style={_styles.row}>
-          <View style={_styles.cell}>
-            <Text style={_styles.labelText}>Supplier</Text>
+        <View style={returnStyles.row}>
+          <View style={returnStyles.cell}>
+            <Text style={returnStyles.labelText}>Supplier</Text>
           </View>
-          <View style={_styles.cell}>
+          <View style={returnStyles.cell}>
             <TouchableOpacity onPress={() => setsuppModalVisible(true)}>
               <TextInput
-                style={_styles.valueText}
+                style={returnStyles.valueText}
                 value={_suppCode}
                 editable={false}
                 placeholder="Touch to search"
               />
             </TouchableOpacity>
           </View>
-          <View style={_styles.cell}>
+          <View style={returnStyles.cell}>
             <TouchableOpacity
-              style={_styles.addLinkButton}
+              style={returnStyles.addLinkButton}
               onPress={() => GetReturnItemListBySuppCode(_suppCode)}
             >
-              <Text style={_styles.buttonText}>Load</Text>
+              <Text style={returnStyles.buttonText}>Load</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -656,10 +667,10 @@ const ReturnPage = () => {
           animationType="slide"
           onRequestClose={() => setsuppModalVisible(false)}
         >
-          <View style={_styles.modalContainer_2}>
-            <View style={_styles.popup_2}>
+          <View style={returnStyles.modalContainer_2}>
+            <View style={returnStyles.popup_2}>
               <TextInput
-                style={_styles.searchInput}
+                style={returnStyles.searchInput}
                 onChangeText={handleSuppDesChange}
                 placeholder="Type to search"
               />
@@ -669,15 +680,15 @@ const ReturnPage = () => {
                 renderItem={({ item }) => (
                   <TouchableOpacity
                     onPress={() => GetSupplier(item)}
-                    style={_styles.suggestionItem}
+                    style={returnStyles.suggestionItem}
                   >
-                    <Text style={_styles.suggestionText}>
+                    <Text style={returnStyles.suggestionText}>
                       {" "}
                       {item.supp_Code} - {item.supp_Name}
                     </Text>
                   </TouchableOpacity>
                 )}
-                style={_styles.suggestionsList}
+                style={returnStyles.suggestionsList}
               />
               <Button
                 title="Close"
@@ -688,34 +699,34 @@ const ReturnPage = () => {
         </Modal>
       </View>
 
-      <View style={_styles.returnGridContainer}>
+      <View style={returnStyles.returnGridContainer}>
         <RetunItemListPage data={_returnItems} toggleSelect={toggleSelect} />
       </View>
 
       <View>
-        <View style={_styles.vw_2}>
+        <View style={returnStyles.vw_2}>
           <View style={{ width: 120, padding: 2 }}>
             <TouchableOpacity
-              style={_styles.deleteButton}
+              style={returnStyles.deleteButton}
               onPress={DeleteItems}
             >
-              <Text style={_styles.buttonText}>Delete</Text>
+              <Text style={returnStyles.buttonText}>Delete</Text>
             </TouchableOpacity>
           </View>
           <View style={{ width: 150, padding: 2 }}>
             <TouchableOpacity
-              style={_styles.addLinkButton}
+              style={returnStyles.addLinkButton}
               onPress={UpdateItemsAsReturned}
             >
-              <Text style={_styles.buttonText}>Return</Text>
+              <Text style={returnStyles.buttonText}>Return</Text>
             </TouchableOpacity>
           </View>
           <View style={{ width: 120, padding: 2 }}>
             <TouchableOpacity
-              style={_styles.scanButton}
+              style={returnStyles.scanButton}
               onPress={ProcessSelectedItems}
             >
-              <Text style={_styles.buttonText}>Process</Text>
+              <Text style={returnStyles.buttonText}>Process</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -723,144 +734,5 @@ const ReturnPage = () => {
     </View>
   );
 };
-
-const _styles = StyleSheet.create({
-  returnGridContainer: {
-    height: 250,
-  },
-  container: {
-    flex: 1,
-    padding: 10,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 10,
-    textAlign: "center",
-  },
-  row: {
-    flexDirection: "row", // Arrange cells horizontally
-    borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
-    paddingVertical: 5,
-  },
-  cell: {
-    flex: 1, // Each cell takes up 50% of the row's width
-    justifyContent: "center",
-    paddingHorizontal: 5,
-  },
-  labelText: {
-    fontWeight: "bold",
-    color: "#333",
-  },
-  valueText: {
-    color: "#555",
-  },
-  modalContainer_2: {
-    flex: 1,
-    justifyContent: "flex-start",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
-  popup_2: {
-    width: "90%",
-    height: "70%",
-    marginTop: 60,
-    backgroundColor: "white",
-    borderRadius: 0,
-    padding: 5,
-    alignItems: "center",
-  },
-  searchInput: {
-    borderColor: "gray",
-    borderWidth: 1,
-    width: "100%",
-    padding: 10,
-    marginBottom: 10,
-  },
-  suggestionItem: {
-    backgroundColor: "white",
-    padding: 2,
-    //borderRadius: 8,
-    marginBottom: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 1, // For Android shadow
-  },
-  suggestionText: {
-    color: "#333",
-    fontSize: 15,
-  },
-  suggestionsList: {
-    width: "100%",
-    // maxHeight: 200, // Limit the height of the list
-    borderTopWidth: 1,
-    borderTopColor: "#ddd",
-    marginTop: 10,
-  },
-  vw_2: {
-    //backgroundColor: 'blue',
-    justifyContent: "flex-end",
-    flexDirection: "row",
-    alignItems: "flex-end",
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: "flex-start",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
-  popup: {
-    width: "90%",
-    height: "45%",
-    marginTop: 60,
-    backgroundColor: "white",
-    borderRadius: 0,
-    padding: 5,
-    alignItems: "center",
-  },
-
-  inputTextBox: {
-    borderColor: "gray",
-    borderWidth: 1,
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  scanButton: {
-    backgroundColor: "#007BFF",
-    padding: 10,
-    borderRadius: 5,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  clearButton: {
-    padding: 10,
-    borderRadius: 5,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#DC3545",
-  },
-  buttonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  addLinkButton: {
-    backgroundColor: "#28a745",
-    padding: 10,
-    borderRadius: 5,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  deleteButton: {
-    backgroundColor: "#DC3545",
-    padding: 10,
-    borderRadius: 5,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});
 
 export default ReturnPage;
