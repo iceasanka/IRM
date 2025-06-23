@@ -15,7 +15,7 @@ const HomePage = () => {
 
       <Pressable
         style={styles.addLinkButton}
-        onPress={() => router.push("/Stock/return")}
+        onPress={() => router.push("/ReturnItem/return")}
       >
         <Text style={styles.buttonText}>Return Stock</Text>
       </Pressable>

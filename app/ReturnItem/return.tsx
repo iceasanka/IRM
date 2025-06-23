@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import BarcodeScanner from "../../BarcodeScanner.js";
 import RetunItemListPage from "./RetunItemListPage.js";
-import returnStyles from "./returnStyles";
+import returnStyles from "./returnStyles.js";
 import useReturnPageLogic from "./useReturnPageLogic.js";
 
 const ReturnPage = () => {

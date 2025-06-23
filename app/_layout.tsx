@@ -17,7 +17,7 @@ const RootLayout = () => {
         }}
       />
       <Stack.Screen
-        name="Stock/return"
+        name="ReturnItem/return"
         options={{
           headerTitle: "Return",
         }}
