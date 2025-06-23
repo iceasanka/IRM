@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -7,322 +7,26 @@ import {
   FlatList,
   Alert,
   TouchableOpacity,
-  StyleSheet,
-  Modal,
-  GestureResponderEvent,
   Dimensions,
   ScrollView,
+  Modal,
 } from "react-native";
 import BarcodeScanner from "../../BarcodeScanner_2.js";
-import {
-  apigetItemWithDetailsByBarcode,
-  apiAddGrn,
-  apiDeleteGrn,
-  apigetSuppByDescription,
-  apiGetGrnTempByGrnReferenceAndStatus,
-  getPriceLink,
-} from "../../api.js";
 import GrnList from "./GrnList.js";
+import styles from "./styles";
+import useGrnPageLogic from "./GrnPageLogic";
 
 const GrnPage: React.FC = () => {
-  const [barcode, setBarcode] = useState("");
-  const [scanning, setScanning] = useState(false);
-  const itemRefInputRef = useRef<TextInput>(null); // Ref for ItemRefCode input
-
-  const [itemDetails, setItemDetails] = useState<any>(null);
-  const [gridData, setGridData] = useState<any[]>([]);
-  const [formValues, setFormValues] = useState({
-    ItemRefCode: "",
-    CostPrice: "",
-    ERetPrice: "",
-    Qty: "",
-  });
-  const [_returnItems, setReturnItems] = useState<ReturnItem[]>([]);
-  const qtyInputRef = useRef<TextInput>(null);
-  const itemRefCounter = useRef<number>(1);
-  //const [successMessage, setSuccessMessage] = useState("");
-  const [message, setmessage] = useState("");
-
-  interface ReturnItem {
-    id: number;
-    selected: boolean;
-    barCode: string;
-    itemCode: string;
-    descrip: string;
-    date: string;
-    status: number;
-    grnReference: string;
-    itemRefCode: string;
-    costPrice: number;
-    eRetPrice: number;
-    qty: number;
-  }
-  const [_suppmodalVisible, setsuppModalVisible] = useState(false);
-  const [_suppSuggestions, setSuppSuggestions] = useState([]);
-  const [_suppCode, setSuppCode] = useState("");
-  const [_supplier, setSupplier] = useState({});
-  const lastScannedRef = useRef<string | null>(null); // add this above
-  const [priceLinks, setPriceLinks] = useState<{ price: number }[]>([]);
-
-  useEffect(() => {
-    if (barcode) {
-      fetchItemDetails(barcode);
-    }
-  }, [barcode]);
-
-  const fetchPriceLinks = async (itemCode: string) => {
-    try {
-      const response = await getPriceLink(itemCode);
-      setPriceLinks(response.data);
-      //console.log("Price links fetched:", response.data); // Log the price links
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const handleScan = (scannedData: string) => {
-    if (scannedData === lastScannedRef.current) {
-      //console.log("Same barcode scanned consecutively. Ignoring.");
-      setmessage("Same barcode scanned consecutively. Ignoring.");
-      setTimeout(() => setmessage(""), 2000);
-      return;
-    }
-    lastScannedRef.current = scannedData; // Update last scanned
-
-    setBarcode(scannedData);
-
-    setmessage(scannedData);
-    setTimeout(() => setmessage(""), 3000);
-    //console.log("Scanned barcode:", scannedData); // Log the scanned barcode
-    // setScanning(false); // Remove this
-  };
-
-  const fetchItemDetails = async (barcode: string) => {
-    try {
-      const response = await apigetItemWithDetailsByBarcode(barcode);
-      const data = response.data;
-      //console.log("Item details:", data); // Log the item details
-      if (data) {
-        setItemDetails(data);
-        // console.log("Item details fetched:", data); // Log the item details
-        setFormValues({
-          ItemRefCode: itemRefCounter.current.toString(), // Reset ItemRefCode
-          CostPrice: "",
-          ERetPrice: "",
-          Qty: "",
-        });
-        setSuppCode(response.data.supp_Code);
-        fetchPriceLinks(data.item_Code); // Fetch price links for the item
-        // Focus on the ItemRefCode input after receiving item details
-        setTimeout(() => {
-          itemRefInputRef.current?.focus();
-        }, 100);
-      } else {
-        clearForm();
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const saveTempGrn = async () => {
-    if (!itemDetails) {
-      Alert.alert("Error", "Please scan a barcode first.");
-      return;
-    }
-
-    if (!itemDetails.barcode) {
-      Alert.alert("Error", "Bar code is required.");
-      return;
-    }
-
-    if (!formValues.ItemRefCode) {
-      Alert.alert("Error", "Item Ref Code is required.");
-      return;
-    }
-    if (!formValues.Qty) {
-      Alert.alert("Error", "Quantity is required.");
-      return;
-    }
-
-    const grnTemp = {
-      BarCode: itemDetails?.barcode,
-      ItemCode: itemDetails?.item_Code,
-      Descrip: itemDetails?.descrip,
-      Date: new Date().toISOString(),
-      Status: 1,
-      GrnReference: itemDetails?.supp_Code,
-      ItemRefCode: formValues.ItemRefCode,
-      CostPrice: parseFloat(formValues.CostPrice),
-      ERetPrice: parseFloat(formValues.ERetPrice),
-      Qty: parseFloat(formValues.Qty),
-    };
-
-    try {
-      const _response = await apiAddGrn(grnTemp);
-      const added = _response.data.data;
-
-      const _item: ReturnItem = {
-        ...added,
-        selected: false,
-      };
-
-      setReturnItems((prevItems) => [...prevItems, _item]);
-      itemRefCounter.current += 1;
-
-      //Alert.alert("Success", _response.data.message);
-      // toast.success(_response.data.message);
-      setmessage(_response.data.message);
-      setTimeout(() => setmessage(""), 2000); // Hide after 3 seconds
-
-      clearForm();
-    } catch (error) {
-      Alert.alert("Error", "Failed to save record.");
-    }
-  };
-
-  const toggleSelect = (id) => {
-    setReturnItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === id ? { ...item, selected: !item.selected } : item
-      )
-    );
-  };
-
-  const clearForm = () => {
-    setBarcode("");
-    setItemDetails(null);
-    setFormValues({
-      ItemRefCode: "",
-      CostPrice: "",
-      ERetPrice: "",
-      Qty: "",
-    });
-    lastScannedRef.current = null; // Reset last scanned reference
-    setPriceLinks([]);
-    // Focus on the ItemRefCode input after clearing the form
-    setTimeout(() => {
-      itemRefInputRef.current?.focus();
-    }, 100);
-  };
-
-  const clearAllForm = () => {
-    clearForm();
-    setReturnItems([]);
-    setSupplier({});
-    setSuppCode("");
-    setSuppSuggestions([]);
-    itemRefCounter.current = 1;
-  };
-
-  function DeleteItems(event: GestureResponderEvent): void {
-    const selectedItems = _returnItems.filter((item) => item.selected);
-
-    if (selectedItems.length === 0) {
-      Alert.alert("No items selected", "Please select items to delete.");
-      return;
-    }
-    // check more than 1 item selected
-    if (selectedItems.length > 1) {
-      Alert.alert("Error", "Please select only one item to delete.");
-      return;
-    }
-
-    console.log("Selected items:", selectedItems); // Log the selected items
-
-    Alert.alert("Delete", "Are you sure you want to delete?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "OK",
-        onPress: async () => {
-          const _response = await apiDeleteGrn(selectedItems[0].id);
-          const deleted = _response.data.data;
-          //id deleted then remove form grid
-          if (deleted) {
-            Alert.alert("Success", _response.data.message);
-
-            setReturnItems((prevItems) =>
-              prevItems.filter((item) => !item.selected)
-            );
-          }
-        },
-      },
-    ]);
-  }
-
-  async function GetGrnItemsByGrnRef(_suppCode: string): Promise<void> {
-    try {
-      if (!_suppCode || _suppCode.trim() === "") {
-        Alert.alert("Invalid Input", "Please enter supplier Code.");
-        return;
-      }
-
-      const response = await apiGetGrnTempByGrnReferenceAndStatus(_suppCode, 1);
-
-      const data = response.data.data;
-      //clear retun items and add new items
-      setReturnItems([]);
-      if (data.length > 0) {
-        const updatedItems = data.map((item) => ({
-          ...item,
-          selected: false,
-        }));
-        setReturnItems(updatedItems);
-      } else {
-        Alert.alert(
-          "No items found",
-          "No items found for the given supplier code."
-        );
-        setReturnItems([]);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
-  const handleSuppDesChange = (text) => {
-    try {
-      setSuppCode(text);
-
-      if (text.length > 0) {
-        SearchBySuppDes(text);
-      } else {
-        setSuppSuggestions([]);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const SearchBySuppDes = async (query: any) => {
-    try {
-      const response = await apigetSuppByDescription(query);
-      setSuppSuggestions(response.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const GetSupplier = (suggestion) => {
-    try {
-      setSuppCode(suggestion.supp_Code);
-      setSuppSuggestions([]);
-      setsuppModalVisible(false);
-      setSupplier(suggestion);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  const logic = useGrnPageLogic();
 
   return (
-    //<ScrollView>
     <View style={styles.container}>
       {/* Barcode scanner always at the top */}
       <View style={styles.barcodeScannerContainer}>
-        <BarcodeScanner onScan={handleScan} />
+        <BarcodeScanner onScan={logic.handleScan} />
       </View>
       <View style={styles.messageArea}>
-        {message ? (
+        {logic.message ? (
           <Text
             style={{
               color: "green",
@@ -330,7 +34,7 @@ const GrnPage: React.FC = () => {
               textAlign: "center",
             }}
           >
-            {message}
+            {logic.message}
           </Text>
         ) : null}
       </View>
@@ -342,12 +46,11 @@ const GrnPage: React.FC = () => {
           <View style={styles.cell2}>
             <TextInput
               style={styles.valueText}
-              value={itemDetails?.barcode || ""}
-              onChangeText={setBarcode}
+              value={logic.itemDetails?.barcode || ""}
+              onChangeText={logic.setBarcode}
             />
           </View>
         </View>
-
         <View style={styles.row}>
           <View style={styles.cell}>
             <Text style={styles.labelText}>Des.</Text>
@@ -355,12 +58,11 @@ const GrnPage: React.FC = () => {
           <View style={styles.cell2}>
             <TextInput
               style={styles.valueText}
-              value={itemDetails?.descrip || ""}
+              value={logic.itemDetails?.descrip || ""}
               editable={false}
             />
           </View>
         </View>
-
         {/* Cost Price */}
         <View style={styles.row}>
           <View style={styles.cell}>
@@ -371,13 +73,13 @@ const GrnPage: React.FC = () => {
               <TextInput
                 style={[styles.inputTextBox, { flex: 1, marginRight: 5 }]}
                 keyboardType="numeric"
-                value={formValues.CostPrice}
+                value={logic.formValues.CostPrice}
                 onChangeText={(text) =>
-                  setFormValues({ ...formValues, CostPrice: text })
+                  logic.setFormValues({ ...logic.formValues, CostPrice: text })
                 }
               />
               <Text style={{ flex: 2, fontWeight: "bold", fontSize: 20 }}>
-                {itemDetails?.cost_Price ?? ""}
+                {logic.itemDetails?.cost_Price ?? ""}
               </Text>
             </View>
           </View>
@@ -390,39 +92,37 @@ const GrnPage: React.FC = () => {
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               <TextInput
                 style={[styles.inputTextBox, { flex: 1, marginRight: 5 }]}
-                value={formValues.ERetPrice}
+                value={logic.formValues.ERetPrice}
                 keyboardType="numeric"
                 onChangeText={(text) =>
-                  setFormValues({ ...formValues, ERetPrice: text })
+                  logic.setFormValues({ ...logic.formValues, ERetPrice: text })
                 }
               />
               <Text style={{ flex: 2, fontWeight: "bold", fontSize: 20 }}>
-                {itemDetails?.eRet_Price ?? ""}
-                {priceLinks.length > 0 && (
+                {logic.itemDetails?.eRet_Price ?? ""}
+                {logic.priceLinks.length > 0 && (
                   <Text style={{ color: "green" }}>
-                    {" | " + priceLinks.map((p) => p.price).join(" | ")}
+                    {" | " + logic.priceLinks.map((p) => p.price).join(" | ")}
                   </Text>
                 )}
               </Text>
             </View>
           </View>
         </View>
-
         {/* Item Ref */}
         <View style={styles.row}>
           <View style={styles.cell}>
             <Text style={styles.labelText}>Item Ref</Text>
           </View>
-
           <View style={styles.cell2}>
             <TextInput
               style={styles.inputTextBox}
-              value={formValues.ItemRefCode}
+              value={logic.formValues.ItemRefCode}
               returnKeyType="next"
               onChangeText={(text) =>
-                setFormValues({ ...formValues, ItemRefCode: text })
+                logic.setFormValues({ ...logic.formValues, ItemRefCode: text })
               }
-              onSubmitEditing={() => qtyInputRef.current?.focus()}
+              onSubmitEditing={() => logic.qtyInputRef.current?.focus()}
             />
           </View>
         </View>
@@ -431,49 +131,51 @@ const GrnPage: React.FC = () => {
           <View style={styles.cell}>
             <Text style={styles.labelText}>Qty</Text>
           </View>
-
           <View style={styles.cell2}>
             <TextInput
-              //ref={qtyInputRef}
-              ref={itemRefInputRef} // Attach the ref to the ItemRefCode input
+              //ref={logic.qtyInputRef}
+              ref={logic.itemRefInputRef}
               style={styles.inputTextBox}
-              value={formValues.Qty}
+              value={logic.formValues.Qty}
               keyboardType="numeric"
               onChangeText={(text) =>
-                setFormValues({ ...formValues, Qty: text })
+                logic.setFormValues({ ...logic.formValues, Qty: text })
               }
             />
           </View>
         </View>
       </View>
-
       {/* Bar code scaner function */}
       <View style={styles.rightButtonContainer}>
-        <TouchableOpacity style={styles.deleteButton} onPress={DeleteItems}>
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={logic.DeleteItems}
+        >
           <Text style={styles.buttonText}>Delete</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity style={styles.clearButton} onPress={clearAllForm}>
+        <TouchableOpacity
+          style={styles.clearButton}
+          onPress={logic.clearAllForm}
+        >
           <Text style={styles.buttonText}>Clear All</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.clearButton} onPress={clearForm}>
+        <TouchableOpacity style={styles.clearButton} onPress={logic.clearForm}>
           <Text style={styles.buttonText}>Clear</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.saveButton} onPress={saveTempGrn}>
+        <TouchableOpacity style={styles.saveButton} onPress={logic.saveTempGrn}>
           <Text style={styles.buttonText}>Save</Text>
         </TouchableOpacity>
       </View>
-
       {/* Supplier search */}
       <View style={styles.row}>
         <View style={styles.cell}>
           <Text style={styles.labelText}>Supplier</Text>
         </View>
         <View style={styles.cell}>
-          <TouchableOpacity onPress={() => setsuppModalVisible(true)}>
+          <TouchableOpacity onPress={() => logic.setsuppModalVisible(true)}>
             <TextInput
               style={styles.valueText}
-              value={_suppCode}
+              value={logic._suppCode}
               editable={false}
               placeholder="Touch to search"
             />
@@ -482,32 +184,31 @@ const GrnPage: React.FC = () => {
         <View style={styles.cell}>
           <TouchableOpacity
             style={styles.loadButton}
-            onPress={() => GetGrnItemsByGrnRef(_suppCode)}
+            onPress={() => logic.GetGrnItemsByGrnRef(logic._suppCode)}
           >
             <Text style={styles.buttonText}>Load</Text>
           </TouchableOpacity>
         </View>
       </View>
-
       <Modal
-        visible={_suppmodalVisible}
+        visible={logic._suppmodalVisible}
         transparent={true}
         animationType="slide"
-        onRequestClose={() => setsuppModalVisible(false)}
+        onRequestClose={() => logic.setsuppModalVisible(false)}
       >
         <View style={styles.modalContainer_2}>
           <View style={styles.popup_2}>
             <TextInput
               style={styles.searchInput}
-              onChangeText={handleSuppDesChange}
+              onChangeText={logic.handleSuppDesChange}
               placeholder="Type to search"
             />
             <FlatList
-              data={_suppSuggestions}
+              data={logic._suppSuggestions}
               keyExtractor={(item) => item.supp_Code}
               renderItem={({ item }) => (
                 <TouchableOpacity
-                  onPress={() => GetSupplier(item)}
+                  onPress={() => logic.GetSupplier(item)}
                   style={styles.suggestionItem}
                 >
                   <Text style={styles.suggestionText}>
@@ -518,200 +219,19 @@ const GrnPage: React.FC = () => {
               )}
               style={styles.suggestionsList}
             />
-            <Button title="Close" onPress={() => setsuppModalVisible(false)} />
+            <Button
+              title="Close"
+              onPress={() => logic.setsuppModalVisible(false)}
+            />
           </View>
         </View>
       </Modal>
-
       {/* Data grid */}
       <View style={styles.returnGridContainer}>
-        <GrnList data={_returnItems} toggleSelect={toggleSelect} />
+        <GrnList data={logic._returnItems} toggleSelect={logic.toggleSelect} />
       </View>
     </View>
-    //</ScrollView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 5,
-  },
-  row: {
-    // flex: 1,
-    flexDirection: "row", // Arrange cells horizontally
-    borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
-    paddingVertical: 3,
-  },
-  cell: {
-    flex: 0.8, // Each cell takes up 50% of the row's width
-    justifyContent: "center",
-    paddingHorizontal: 3,
-  },
-  cell2: {
-    flex: 3, // Each cell takes up 50% of the row's width
-    justifyContent: "center",
-    paddingHorizontal: 3,
-  },
-  labelText: {
-    color: "#333",
-  },
-  valueText: {
-    color: "#555",
-    fontWeight: "bold",
-  },
-  inputTextBox: {
-    borderColor: "gray",
-    borderWidth: 1,
-    fontSize: 20,
-    fontWeight: "bold",
-    width: "100%",
-  },
-
-  messageArea: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 0,
-    height: 20,
-  },
-  priceText: {
-    flex: 1,
-    fontSize: 30,
-    color: "#228B22",
-    fontWeight: "bold",
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
-  popup: {
-    width: "90%",
-    height: "50%",
-    backgroundColor: "white",
-    padding: 20,
-    alignItems: "center",
-  },
-
-  rightButtonContainer: {
-    alignSelf: "flex-end", // Align the container to the right
-    marginBottom: 10, // Add space between buttons and the New Price section
-    flexDirection: "row", // Arrange buttons horizontally
-  },
-  scanButton: {
-    width: 100, // Fixed width
-    height: 100, // Fixed height
-    backgroundColor: "#007BFF", // Background color
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 10, // Rounded corners
-    marginBottom: 10, // Space between buttons
-  },
-  clearButton: {
-    width: 100, // Fixed width
-    height: 50, // Fixed height
-    backgroundColor: "#aaaaee", // Background color
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 10, // Rounded corners
-  },
-  buttonText: {
-    color: "white", // Text color
-    fontSize: 16, // Text size
-    fontWeight: "bold", // Text weight
-  },
-  saveButton: {
-    backgroundColor: "#28a745", // Green background
-    borderRadius: 10, // Rounded corners
-    justifyContent: "center",
-    alignItems: "center",
-    width: 100, // Fixed width
-    height: 100, // Fixed height
-  },
-  loadButton: {
-    backgroundColor: "#28a745", // Green background
-    borderRadius: 10, // Rounded corners
-    justifyContent: "center",
-    alignItems: "center",
-    width: 100, // Fixed width
-    height: 50, // Fixed height
-  },
-  deleteButton: {
-    backgroundColor: "#DC3545", // Red background
-    padding: 0, // Padding
-    borderRadius: 0, // Rounded corners
-    justifyContent: "center",
-    alignItems: "center",
-    width: 100, // Fixed width
-    height: 50, // Fixed height
-  },
-  returnGridContainer: {
-    height: 250,
-  },
-  vw_2: {
-    //backgroundColor: 'blue',
-    justifyContent: "flex-end",
-    flexDirection: "row",
-    alignItems: "flex-end",
-  },
-
-  modalContainer_2: {
-    flex: 1,
-    justifyContent: "flex-start",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
-  popup_2: {
-    width: "90%",
-    height: "70%",
-    marginTop: 60,
-    backgroundColor: "white",
-    borderRadius: 0,
-    padding: 5,
-    alignItems: "center",
-  },
-  searchInput: {
-    borderColor: "gray",
-    borderWidth: 1,
-    width: "100%",
-    padding: 10,
-    marginBottom: 10,
-  },
-  suggestionItem: {
-    backgroundColor: "white",
-    padding: 2,
-    //borderRadius: 8,
-    marginBottom: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 1, // For Android shadow
-  },
-  suggestionText: {
-    color: "#333",
-    fontSize: 15,
-  },
-  suggestionsList: {
-    width: "100%",
-    // maxHeight: 200, // Limit the height of the list
-    borderTopWidth: 1,
-    borderTopColor: "#ddd",
-    marginTop: 10,
-  },
-  barcodeScannerContainer: {
-    width: "100%",
-    height: 120, // or 30 if you prefer
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 0,
-    backgroundColor: "#f5f5f5",
-    borderRadius: 8,
-    overflow: "hidden",
-  },
-});
 
 export default GrnPage;

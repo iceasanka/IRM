@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Text, View, Button, StyleSheet, Dimensions } from 'react-native';
 import { CameraView, Camera } from "expo-camera";
 
@@ -6,6 +6,7 @@ const BarcodeScanner_2 = ({ onScan }) => {
     const [hasPermission, setHasPermission] = useState(null);
     const [scanned, setScanned] = useState(false);
     const [dimensions, setDimensions] = useState({ width: Dimensions.get('window').width, height: Dimensions.get('window').height });
+    const timeoutRef = useRef(null);
 
     useEffect(() => {
         const getCameraPermissions = async () => {
@@ -26,13 +27,21 @@ const BarcodeScanner_2 = ({ onScan }) => {
         };
     }, []);
 
+    useEffect(() => {
+        // Cleanup timeout on unmount
+        return () => {
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        };
+    }, []);
+
     const handleBarCodeScanned = ({ type, data }) => {
+        if (scanned) return; // Prevent multiple scans during cooldown
         setScanned(true);
         onScan(data);
-
-        setTimeout(() => {
-        setScanned(false); // Allow next scan after delay
-    }, 3000); // 1-second delay
+        // Disable scanning for 2 seconds
+        timeoutRef.current = setTimeout(() => {
+            setScanned(false);
+        }, 2000);
     };
 
     if (hasPermission === null) {
@@ -49,9 +58,9 @@ const BarcodeScanner_2 = ({ onScan }) => {
                 barcodeScannerSettings={{
                     barcodeTypes: ['code128', 'code93', 'codabar', 'ean13', 'ean8', 'code39']
                 }}
+                autofocus='on'
                 style={styles.camera}
             />
-            {scanned && <Button title={'Tap to Scan Again'} onPress={() => setScanned(false)} />}
         </View>
     );
 };
@@ -63,10 +72,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     camera: {
-        // width: Dimensions.get('window').width * 0.5, // 90% of the screen width
-        // height: Dimensions.get('window').height * 0.3, // 40% of the screen height
-        width: 290, // Fixed width in pixels
-        height: 280, // Fixed height in pixels
+        width: 230, 
+        height: 280, 
     },
 });
 
