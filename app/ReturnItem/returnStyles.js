@@ -132,6 +132,21 @@ const returnStyles = StyleSheet.create({
     borderRadius: 5,
     justifyContent: "center",
     alignItems: "center",
+  }, barcodeScannerContainer: {
+    width: "100%",
+    height: 120, // or 30 if you prefer
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 0,
+    backgroundColor: "#f5f5f5",
+    borderRadius: 8,
+    overflow: "hidden",
+  },  messageArea: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 0,
+    height: 20,
   },
 });
 

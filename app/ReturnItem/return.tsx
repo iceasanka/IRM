@@ -8,16 +8,32 @@ import {
   TouchableOpacity,
   Button,
 } from "react-native";
-import BarcodeScanner from "../../BarcodeScanner.js";
+import BarcodeScanner from "../../BarcodeScanner_2.js";
 import RetunItemListPage from "./RetunItemListPage.js";
 import returnStyles from "./returnStyles.js";
-import useReturnPageLogic from "./useReturnPageLogic.js";
+import useReturnPageLogic from "./useReturnPageLogic";
 
 const ReturnPage = () => {
   const logic = useReturnPageLogic();
 
   return (
     <View style={returnStyles.container}>
+      <View style={returnStyles.barcodeScannerContainer}>
+        <BarcodeScanner onScan={logic.handleScan} />
+      </View>
+      <View style={returnStyles.messageArea}>
+        {logic.message ? (
+          <Text
+            style={{
+              color: "green",
+              fontWeight: "bold",
+              textAlign: "center",
+            }}
+          >
+            {logic.message}
+          </Text>
+        ) : null}
+      </View>
       <View>
         {/* Itemcode */}
         <View style={returnStyles.row}>
@@ -128,19 +144,20 @@ const ReturnPage = () => {
           <View style={{ width: 120, padding: 2 }}>
             <TouchableOpacity
               style={returnStyles.clearButton}
+              onPress={logic.clearAllForm}
+            >
+              <Text style={returnStyles.buttonText}>Clear All</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={{ width: 120, padding: 2 }}>
+            <TouchableOpacity
+              style={returnStyles.clearButton}
               onPress={logic.clearForm}
             >
               <Text style={returnStyles.buttonText}>Clear</Text>
             </TouchableOpacity>
           </View>
-          <View style={{ width: 120, padding: 2 }}>
-            <TouchableOpacity
-              style={returnStyles.scanButton}
-              onPress={() => logic.setScanning(true)}
-            >
-              <Text style={returnStyles.buttonText}>Scan</Text>
-            </TouchableOpacity>
-          </View>
+
           <View style={{ width: 120, padding: 2 }}>
             <TouchableOpacity
               style={returnStyles.addLinkButton}
@@ -149,23 +166,6 @@ const ReturnPage = () => {
               <Text style={returnStyles.buttonText}>Add</Text>
             </TouchableOpacity>
           </View>
-          {/* Barcode scan popup */}
-          <Modal
-            visible={logic._scanning}
-            transparent={true}
-            animationType="slide"
-            onRequestClose={() => logic.setScanning(false)}
-          >
-            <View style={returnStyles.modalContainer}>
-              <View style={returnStyles.popup}>
-                <BarcodeScanner onScan={logic.handleScan} />
-                <Button
-                  title="Close"
-                  onPress={() => logic.setScanning(false)}
-                />
-              </View>
-            </View>
-          </Modal>
         </View>
       </View>
       <View style={{ marginTop: 20 }}>
