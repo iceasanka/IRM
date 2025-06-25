@@ -7,20 +7,15 @@
     "orientation": "portrait",
     "icon": "./assets/icon-new.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash-new.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
+   
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.iceasanka.IRM"
     },
     "android": {
-      "adaptiveIcon": {
-        "backgroundColor": "#ffffff"
-      },
-      "package": "com.iceasanka.IRM"
+      "package": "com.iceasanka.IRM",
+      "icon": "./assets/icon-new.png"
+      
     },
     "plugins": [
       "expo-router",
