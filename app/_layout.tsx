@@ -8,6 +8,12 @@ const RootLayout = () => {
         name="index"
         options={{
           headerTitle: "Iresha Food City",
+          headerTitleStyle: {
+            //: "YourFontName", // Replace with your font family
+            fontSize: 20,
+            fontWeight: "bold",
+            color: "#333",
+          },
         }}
       />
       <Stack.Screen
