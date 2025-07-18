@@ -13,8 +13,8 @@ import {
 } from "react-native";
 import BarcodeScanner from "../../BarcodeScanner_2.js";
 import GrnList from "./GrnList.js";
-import styles from "./styles";
-import useGrnPageLogic from "./GrnPageLogic";
+import styles from "./styles.js";
+import useGrnPageLogic from "./GrnPageLogic.js";
 
 const GrnPage: React.FC = () => {
   const logic = useGrnPageLogic();

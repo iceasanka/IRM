@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { Alert } from 'react-native';
 
 const _host = '192.168.1.5';
 const _port = '5000';
@@ -36,6 +37,8 @@ export const apigetItemWithDetailsByBarcode = (barcode) => {
 
 export function apigetItemByDescription(query) {
   const url = `/search?query=${query}`
+  const fullUrl = `${api.defaults.baseURL}${url}`;
+  Alert.alert(fullUrl);
   return api.get(url);
 }
 

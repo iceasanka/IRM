@@ -11,7 +11,7 @@ import {
 import BarcodeScanner from "../../BarcodeScanner_2.js";
 import RetunItemListPage from "./RetunItemListPage.js";
 import returnStyles from "./returnStyles.js";
-import useReturnPageLogic from "./useReturnPageLogic";
+import useReturnPageLogic from "./useReturnPageLogic.js";
 
 const ReturnPage = () => {
   const logic = useReturnPageLogic();
