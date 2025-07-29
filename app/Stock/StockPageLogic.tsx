@@ -184,10 +184,7 @@ const useStockPageLogic = () => {
   const searchDescriptions = async (query: string) => {
     try {
       try {
-        Alert.alert("Searching...", "Please wait.");
         const response = await apigetItemByDescription(query);
-        Alert.alert("Searching...", "request sent");
-        Alert.alert(response.data);
         setSuggestions(response.data);
       } catch (error: any) {
         Alert.alert("Error", error.response.data);

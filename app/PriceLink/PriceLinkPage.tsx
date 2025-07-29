@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import BarcodeScanner from "../../BarcodeScanner_2.js";
 import styles from "./PriceLinkPageStyles.js";
-import usePriceLinkPageLogic from "./PriceLinkPageLogic.js";
+import usePriceLinkPageLogic from "./PriceLinkPageLogic.tsx";
 
 const PriceLinkPage = () => {
   const logic = usePriceLinkPageLogic();

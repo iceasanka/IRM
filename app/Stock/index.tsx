@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import BarcodeScanner from "../../BarcodeScanner_2.js";
 import styles from "./StockPageStyles.js";
-import useStockPageLogic from "./StockPageLogic.js";
+import useStockPageLogic from "./StockPageLogic";
 
 const StockPage = () => {
   const logic = useStockPageLogic();
