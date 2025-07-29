@@ -7,7 +7,7 @@ const RootLayout = () => {
       <Stack.Screen
         name="index"
         options={{
-          headerTitle: "Iresha Food City",
+          headerTitle: "IRM",
           headerTitleStyle: {
             //: "YourFontName", // Replace with your font family
             fontSize: 20,

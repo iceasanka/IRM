@@ -10,7 +10,7 @@ const HomePage = () => {
         style={styles.addLinkButton}
         onPress={() => router.push("/Stock")}
       >
-        <Text style={styles.buttonText}>Add/Update Stock</Text>
+        <Text style={styles.buttonText}>Stock</Text>
       </Pressable>
 
       <Pressable

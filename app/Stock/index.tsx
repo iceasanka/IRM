@@ -20,7 +20,7 @@ const StockPage = () => {
 
   return (
     <SafeAreaView>
-      <ScrollView keyboardShouldPersistTaps="always">
+      <ScrollView>
         <View style={styles.container}>
           <View style={styles.barcodeScannerContainer}>
             <BarcodeScanner onScan={logic.handleScan} />
