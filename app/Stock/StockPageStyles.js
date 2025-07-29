@@ -92,12 +92,42 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     borderBottomWidth: 1,
     borderBottomColor: "#ddd",
-    paddingVertical: 3,
+    
+  },
+  row_3: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
+    
+  },
+   row_2: {
+    flexDirection: "row",
+    borderBottomColor: "#ddd",
+    
   },
   cell: {
     flex: 1,
     justifyContent: "center",
     paddingHorizontal: 3,
+  },
+    cell_3: {
+    flex: 1,
+    justifyContent: "center",
+    paddingHorizontal: 3,
+  },
+  cell_3_label: {
+  width: 120, // fixed width for label
+  justifyContent: "center",
+  paddingHorizontal: 3,
+},
+cell_3_input: {
+  flex: 1,
+  justifyContent: "center",
+  paddingHorizontal: 3,
+},
+    cell_2: {
+    flex: 2,
+    justifyContent: "center",
   },
   labelText: {
     color: "#333",
@@ -106,11 +136,23 @@ const styles = StyleSheet.create({
     color: "#555",
     fontWeight: "bold",
   },
+  
+  valueText_2: {
+    color: "#555",
+    fontWeight: "bold",
+     padding: 0,
+  margin: 0,
+  borderWidth: 0,
+  
+  },
   inputTextBox: {
     borderColor: "gray",
-    borderWidth: 1,
     fontSize: 20,
     fontWeight: "bold",
+     padding: 0,
+  margin: 5,
+  borderWidth: 1,
+  height:35,
   },
   inputTextBoxDes: {
     borderColor: "gray",

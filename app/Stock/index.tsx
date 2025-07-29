@@ -47,6 +47,7 @@ const StockPage = () => {
                 <TextInput
                   style={styles.valueText}
                   value={logic.items.item_Code}
+                  editable={false}
                 />
               </View>
               <View style={styles.cell}>
@@ -56,6 +57,7 @@ const StockPage = () => {
                 <TextInput
                   style={styles.valueText}
                   value={logic.items.ref_Code}
+                  editable={false}
                 />
               </View>
             </View>
@@ -68,17 +70,27 @@ const StockPage = () => {
                   style={styles.valueText}
                   value={logic.items.barcode}
                   onChangeText={logic.setBarcode}
+                  editable={false}
                 />
               </View>
             </View>
-            <View style={styles.row}>
-              <View style={styles.cell}>
+            <View style={styles.row_3}>
+              <View style={styles.cell_3_label}>
                 <Text style={styles.labelText}>Description</Text>
               </View>
-              <View style={styles.cell}>
+              <View style={styles.cell_3_input}>
                 <TouchableOpacity onPress={() => logic.setModalVisible(true)}>
                   <TextInput
-                    style={styles.valueText}
+                    style={[
+                      styles.valueText,
+                      {
+                        padding: 0,
+                        margin: 0,
+                        borderWidth: 1,
+                        height: 35,
+                        width: "100%",
+                      },
+                    ]}
                     value={logic.description}
                     editable={false}
                     placeholder="Touch to search"
@@ -136,13 +148,18 @@ const StockPage = () => {
                       ? logic.items.eRet_Price.toString()
                       : ""
                   }
+                  editable={false}
                 />
               </View>
               <View style={styles.cell}>
                 <Text style={styles.labelText}>Discount</Text>
               </View>
               <View style={styles.cell}>
-                <TextInput style={styles.valueText} value={logic.items.tax3} />
+                <TextInput
+                  style={styles.valueText}
+                  value={logic.items.tax3}
+                  editable={false}
+                />
               </View>
             </View>
             <View style={styles.row}>
@@ -150,37 +167,53 @@ const StockPage = () => {
                 <Text style={styles.labelText}>Price Link</Text>
               </View>
               <View style={styles.cell}>
-                <TextInput style={styles.valueText} value={logic._priceLink} />
+                <TextInput
+                  style={styles.valueText}
+                  value={logic._priceLink}
+                  editable={false}
+                />
               </View>
             </View>
-            <View style={[styles.row, { backgroundColor: "#f1f1f1" }]}>
-              <View style={styles.cell}>
+            <View style={[styles.row_2, { backgroundColor: "#f9f9f9" }]}>
+              <View style={styles.cell_2}>
                 <Text style={styles.labelText}>Stock</Text>
               </View>
-              <View style={styles.cell}>
+              <View style={styles.cell_2}>
                 <TextInput
-                  style={[styles.valueText, { color: "#228B22", fontSize: 30 }]}
+                  style={[
+                    styles.valueText_2,
+                    { color: "#228B22", fontSize: 30 },
+                  ]}
                   value={logic.stock.toString()}
+                  editable={false}
                 />
               </View>
-              <View style={styles.cell}>
+              <View style={styles.cell_2}>
                 <Text style={styles.labelText}>POS Stock</Text>
               </View>
-              <View style={styles.cell}>
+              <View style={styles.cell_2}>
                 <TextInput
-                  style={[styles.valueText, { color: "#FF0000", fontSize: 30 }]}
+                  style={[
+                    styles.valueText_2,
+                    { color: "#FF0000", fontSize: 30 },
+                  ]}
                   value={logic.posStock.toString()}
+                  editable={false}
                 />
               </View>
             </View>
-            <View style={styles.row}>
-              <View style={styles.cell}>
+            <View style={styles.row_2}>
+              <View style={styles.cell_2}>
                 <Text style={styles.labelText}>Total Stock</Text>
               </View>
-              <View style={[styles.cell, styles.totalStockContainer]}>
+              <View style={[styles.cell_2, styles.totalStockContainer]}>
                 <TextInput
-                  style={[styles.valueText, { color: "#007BFF", fontSize: 30 }]}
+                  style={[
+                    styles.valueText_2,
+                    { color: "#007BFF", fontSize: 30 },
+                  ]}
                   value={logic.totalStock}
+                  editable={false}
                 />
                 <TouchableOpacity
                   style={[
@@ -198,11 +231,11 @@ const StockPage = () => {
                 </TouchableOpacity>
               </View>
             </View>
-            <View style={styles.row}>
-              <View style={styles.cell}>
+            <View style={styles.row_2}>
+              <View style={styles.cell_2}>
                 <Text style={styles.labelText}>Add/OpStock</Text>
               </View>
-              <View style={styles.cell}>
+              <View style={styles.cell_2}>
                 <TextInput
                   style={[styles.inputTextBox]}
                   value={logic.addOpStock}

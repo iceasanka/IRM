@@ -130,12 +130,14 @@ const useStockPageLogic = () => {
         item: items,
         CountedStock: isOn ? parseFloat(posStock) : 0,
       });
-
+      console.log("Update Stock Response:", response.data);
       fetchStock(itemCode);
 
       setAddOpStock("");
       setTotalStock("");
       setPosStock("0");
+
+      setmessage(response.data);
     } catch (error: any) {
       setmessage(error.response.data);
     }
@@ -178,7 +180,7 @@ const useStockPageLogic = () => {
     setPriceLink("");
     setPosStock("");
     lastScannedRef.current = null;
-    //setmessage("");
+    setmessage("");
   };
 
   const searchDescriptions = async (query: string) => {
