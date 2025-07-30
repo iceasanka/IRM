@@ -39,7 +39,7 @@ const HomePage = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    //flex: 1,
     justifyContent: "center",
     marginHorizontal: 10,
     alignItems: "center",
