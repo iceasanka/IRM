@@ -11,7 +11,7 @@ import {
 import BarcodeScanner from "../../BarcodeScanner_2.js";
 import RetunItemListPage from "./RetunItemListPage.js";
 import returnStyles from "./returnStyles.js";
-import useReturnPageLogic from "./useReturnPageLogic.tsx";
+import useReturnPageLogic from "./useReturnPageLogic";
 
 const ReturnPage = () => {
   const logic = useReturnPageLogic();
@@ -36,7 +36,7 @@ const ReturnPage = () => {
       </View>
       <View>
         {/* Itemcode */}
-        <View style={returnStyles.row}>
+        <View style={[returnStyles.row, { backgroundColor: "#e9e9e9" }]}>
           <View style={returnStyles.cell}>
             <Text style={returnStyles.labelText}>Item Code</Text>
           </View>
@@ -44,6 +44,7 @@ const ReturnPage = () => {
             <TextInput
               style={returnStyles.valueText}
               value={logic._items.item_Code}
+              editable={false}
             />
           </View>
         </View>
@@ -57,18 +58,28 @@ const ReturnPage = () => {
               style={returnStyles.valueText}
               value={logic._items.barcode}
               onChangeText={logic.setBarcode}
+              editable={false}
             />
           </View>
         </View>
         {/* Description */}
-        <View style={returnStyles.row}>
-          <View style={returnStyles.cell}>
+        <View style={returnStyles.row_3}>
+          <View style={returnStyles.cell_3_label}>
             <Text style={returnStyles.labelText}>Description</Text>
           </View>
-          <View style={returnStyles.cell}>
+          <View style={returnStyles.cell_3_input}>
             <TouchableOpacity onPress={() => logic.setModalVisible(true)}>
               <TextInput
-                style={returnStyles.valueText}
+                style={[
+                  returnStyles.valueText,
+                  {
+                    padding: 0,
+                    margin: 0,
+                    borderWidth: 1,
+                    height: 35,
+                    width: "100%",
+                  },
+                ]}
                 value={logic._description}
                 editable={false}
                 placeholder="Touch to search"
@@ -135,8 +146,12 @@ const ReturnPage = () => {
           </View>
           <View style={returnStyles.cell}>
             <TextInput
-              style={returnStyles.valueText}
+              style={[
+                returnStyles.valueText_2,
+                { color: "#228B22", fontSize: 25 },
+              ]}
               value={logic._stock.toString()}
+              editable={false}
             />
           </View>
         </View>
@@ -177,7 +192,7 @@ const ReturnPage = () => {
           <View style={returnStyles.cell}>
             <TouchableOpacity onPress={() => logic.setsuppModalVisible(true)}>
               <TextInput
-                style={returnStyles.valueText}
+                style={[returnStyles.valueText, { borderWidth: 1 }]}
                 value={logic._suppCode}
                 editable={false}
                 placeholder="Touch to search"

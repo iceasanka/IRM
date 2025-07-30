@@ -18,19 +18,43 @@ const returnStyles = StyleSheet.create({
     flexDirection: "row",
     borderBottomWidth: 1,
     borderBottomColor: "#ddd",
-    paddingVertical: 5,
+  },
+   row_3: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
+    
   },
   cell: {
     flex: 1,
     justifyContent: "center",
-    paddingHorizontal: 5,
+    paddingHorizontal: 3,
   },
+  cell_3_input: {
+  flex: 1,
+  justifyContent: "center",
+  paddingHorizontal: 3,
+},
+  cell_3_label: {
+  width: 120, // fixed width for label
+  justifyContent: "center",
+  paddingHorizontal: 3,
+},
   labelText: {
     fontWeight: "bold",
     color: "#333",
   },
   valueText: {
     color: "#555",
+     fontWeight: "bold",
+  },
+    valueText_2: {
+    color: "#555",
+    fontWeight: "bold",
+     padding: 0,
+  margin: 0,
+  borderWidth: 0,
+  
   },
   modalContainer_2: {
     flex: 1,
@@ -97,8 +121,12 @@ const returnStyles = StyleSheet.create({
   inputTextBox: {
     borderColor: "gray",
     borderWidth: 1,
-    fontSize: 18,
+    fontSize: 30,
     fontWeight: "bold",
+    padding: 0,
+    margin: 0,
+    borderWidth: 1,
+    color: "#d42727bd",
   },
   scanButton: {
     backgroundColor: "#007BFF",
