@@ -1,7 +1,6 @@
 import axios from 'axios';
-import { Alert } from 'react-native';
 
-const _host = '192.168.132.209';
+const _host = '192.168.132.222';
 const _port = '5000';
 
 const api = axios.create({

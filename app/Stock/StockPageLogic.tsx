@@ -180,7 +180,7 @@ const useStockPageLogic = () => {
     setPriceLink("");
     setPosStock("");
     lastScannedRef.current = null;
-    setmessage("");
+    //setmessage("");
   };
 
   const searchDescriptions = async (query: string) => {
