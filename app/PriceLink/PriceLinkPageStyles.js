@@ -9,18 +9,27 @@ const styles = StyleSheet.create({
     flexDirection: "row", // Arrange cells horizontally
     borderBottomWidth: 1,
     borderBottomColor: "#ddd",
-    paddingVertical: 3,
   },
+ 
   cell: {
     flex: 1, // Each cell takes up 50% of the row's width
     justifyContent: "center",
-    paddingHorizontal: 3,
   },
+    cell_3_label: {
+  width: 120, // fixed width for label
+  justifyContent: "center",
+  paddingHorizontal: 3,
+},
+cell_3_input: {
+  flex: 1,
+  justifyContent: "center",
+  paddingHorizontal: 3,
+},
   labelText: {
     color: "#333",
   },
   valueText: {
-    color: "#555",
+    color: "black",
     fontWeight: "bold",
   },
   inputTextBox: {
@@ -30,6 +39,15 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     flex: 1,
     width: "100%",
+    padding: 0,
+  margin: 0,
+ 
+  },
+   valueText_2: {
+    color: "#555",
+    fontWeight: "bold"
+     
+  
   },
   priceLinkRow: {
     flexDirection: "row",
