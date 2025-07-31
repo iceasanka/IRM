@@ -337,7 +337,7 @@ const StockPage = () => {
                 alignItems: "center",
               }}
             >
-              <Text>© 2023 Your Company</Text>
+              <Text>© 2025 IRM</Text>
             </View>
           </ScrollView>
         </KeyboardAvoidingView>

@@ -178,6 +178,15 @@ const PriceLinkPage = () => {
           <Text style={styles.buttonText}>Clear</Text>
         </TouchableOpacity>
       </View>
+      <View
+        style={{
+          height: 30,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Text>© 2025 IRM</Text>
+      </View>
     </View>
   );
 };
