@@ -46,7 +46,7 @@ const PriceLinkPage = () => {
         >
           <ScrollView
             ref={scrollViewRef}
-            contentContainerStyle={{ paddingBottom: 40 }}
+            contentContainerStyle={{ paddingBottom: 20 }}
             keyboardShouldPersistTaps="handled"
           >
             <View style={styles.container}>
@@ -147,24 +147,27 @@ const PriceLinkPage = () => {
                   <View style={styles.cell}>
                     <Text style={styles.labelText}>Price Links</Text>
                   </View>
+
                   <View style={styles.cell}>
-                    <FlatList
-                      data={logic.priceLinks}
-                      keyExtractor={(item, index) => index.toString()}
-                      renderItem={({ item }) => (
-                        <View style={styles.priceLinkRow}>
-                          <Text style={styles.priceText}>{item.price}</Text>
-                          <TouchableOpacity
-                            style={styles.deleteButton}
-                            onPress={() =>
-                              logic.handleDeletePriceLink(item.price)
-                            }
-                          >
-                            <Text style={styles.buttonText}>Delete</Text>
-                          </TouchableOpacity>
-                        </View>
-                      )}
-                    />
+                    <ScrollView horizontal={true} style={{ width: "100%" }}>
+                      <FlatList
+                        data={logic.priceLinks}
+                        keyExtractor={(item, index) => index.toString()}
+                        renderItem={({ item }) => (
+                          <View style={styles.priceLinkRow}>
+                            <Text style={styles.priceText}>{item.price}</Text>
+                            <TouchableOpacity
+                              style={styles.deleteButton}
+                              onPress={() =>
+                                logic.handleDeletePriceLink(item.price)
+                              }
+                            >
+                              <Text style={styles.buttonText}>Delete</Text>
+                            </TouchableOpacity>
+                          </View>
+                        )}
+                      />
+                    </ScrollView>
                   </View>
                 </View>
 
