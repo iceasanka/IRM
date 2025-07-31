@@ -14,7 +14,7 @@ import {
 import BarcodeScanner from "../../BarcodeScanner_2.js";
 import GrnList from "./GrnList.js";
 import styles from "./styles.js";
-import useGrnPageLogic from "./GrnPageLogic.tsx";
+import useGrnPageLogic from "./GrnPageLogic";
 
 const GrnPage: React.FC = () => {
   const logic = useGrnPageLogic();
@@ -48,6 +48,7 @@ const GrnPage: React.FC = () => {
               style={styles.valueText}
               value={logic.itemDetails?.barcode || ""}
               onChangeText={logic.setBarcode}
+              editable={false}
             />
           </View>
         </View>
@@ -71,7 +72,10 @@ const GrnPage: React.FC = () => {
           <View style={styles.cell2}>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               <TextInput
-                style={[styles.inputTextBox, { flex: 1, marginRight: 5 }]}
+                style={[
+                  styles.inputTextBox,
+                  { flex: 1, marginRight: 5, color: "#228B22" },
+                ]}
                 keyboardType="numeric"
                 value={logic.formValues.CostPrice}
                 onChangeText={(text) =>
@@ -116,7 +120,7 @@ const GrnPage: React.FC = () => {
           </View>
           <View style={styles.cell2}>
             <TextInput
-              style={styles.inputTextBox}
+              style={[styles.inputTextBox, { color: "#f31111ff" }]}
               value={logic.formValues.ItemRefCode}
               returnKeyType="next"
               onChangeText={(text) =>

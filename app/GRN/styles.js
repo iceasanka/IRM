@@ -10,7 +10,7 @@ const styles = StyleSheet.create({
     flexDirection: "row", // Arrange cells horizontally
     borderBottomWidth: 1,
     borderBottomColor: "#ddd",
-    paddingVertical: 3,
+    paddingVertical: 1,
   },
   cell: {
     flex: 0.8, // Each cell takes up 50% of the row's width
@@ -32,9 +32,12 @@ const styles = StyleSheet.create({
   inputTextBox: {
     borderColor: "gray",
     borderWidth: 1,
-    fontSize: 20,
+    fontSize: 25,
     fontWeight: "bold",
     width: "100%",
+    padding: 0,
+  margin: 0,
+  
   },
 
   messageArea: {
