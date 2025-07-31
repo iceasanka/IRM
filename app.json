@@ -38,15 +38,7 @@
     },
     "plugins": [
       "expo-router",
-      "expo-font",
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "networkSecurityConfig": "./network_security_config.xml"
-          }
-        }
-      ]
+      "expo-font"
     ],
     "extra": {
       "router": {
