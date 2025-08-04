@@ -33,7 +33,7 @@
         "FOREGROUND_SERVICE",
         "ACCESS_NETWORK_STATE",
         "INTERNET"
-      ], 
+      ],
       "usesCleartextTraffic": true
     },
     "plugins": [
@@ -47,6 +47,7 @@
       "eas": {
         "projectId": "c749a7a0-ff45-4611-8bda-51bc11d52615"
       }
-    }
+    },
+    "owner": "iceasanka"
   }
 }
