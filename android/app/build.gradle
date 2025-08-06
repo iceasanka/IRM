@@ -87,7 +87,7 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.irm"
+    namespace 'com.iceasanka.IRM'
     defaultConfig {
         applicationId 'com.iceasanka.IRM'
         minSdkVersion rootProject.ext.minSdkVersion

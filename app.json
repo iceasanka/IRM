@@ -12,15 +12,10 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.iceasanka.IRM"
-    },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#ffffff"
       },
-      "package": "com.iceasanka.IRM",
       "versionCode": 1,
       "permissions": [
         "ACCESS_FINE_LOCATION",
@@ -32,9 +27,20 @@
         "VIBRATE",
         "FOREGROUND_SERVICE",
         "ACCESS_NETWORK_STATE",
+        "INTERNET",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "CAMERA",
+        "RECORD_AUDIO",
+        "VIBRATE",
+        "FOREGROUND_SERVICE",
+        "ACCESS_NETWORK_STATE",
         "INTERNET"
       ],
-      "usesCleartextTraffic": true
+      "usesCleartextTraffic": true,
+      "package": "com.iceasanka.IRM"
     },
     "plugins": [
       "expo-router",
