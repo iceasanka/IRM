@@ -1,31 +1,51 @@
 import axios from 'axios';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const _host = '192.168.1.5';
-const _port = '5000';
+let _host = '';
+let _port = '';
+let api, apiStock, apiReturn, apiSupplier, apiPosStock, apiPosCountedStock, apiGrn;
 
-const api = axios.create({
+
+// Call this function at app startup to update _host and _port from AsyncStorage
+export async function updateApiHostPortFromStorage() {
+  initApi();
+}
+
+export async function initApi() {
+  _host = await AsyncStorage.getItem("api_ip") || "192.168.1.5";
+  _port = await AsyncStorage.getItem("api_port") || "5000";
+
+
+ api = axios.create({
   baseURL: `http://${_host}:${_port}/api/Items`,
 });
 
-const apiStock = axios.create({
+ apiStock = axios.create({
   baseURL: `http://${_host}:${_port}/api/Stocks`,
 });
 
-const apiReturn = axios.create({
+ apiReturn = axios.create({
   baseURL: `http://${_host}:${_port}/api/Return`,
 });
 
-const apiSupplier = axios.create({
+ apiSupplier = axios.create({
   baseURL: `http://${_host}:${_port}/api/Supplier`,
 });
 
-const apiPosStock = axios.create({
+ apiPosStock = axios.create({
   baseURL: `http://${_host}:${_port}/api/PosStock`,
 });
 
-const apiPosCountedStock = axios.create({
+ apiPosCountedStock = axios.create({
   baseURL: `http://${_host}:${_port}/api/PosCountedStock`,
 });
+
+
+ apiGrn = axios.create({
+  baseURL: `http://${_host}:${_port}/api/GrnTemp`,
+});
+
+}
 
 
 
@@ -35,6 +55,7 @@ export const apigetItemWithDetailsByBarcode = (barcode) => {
 };
 
 export function apigetItemByDescription(query) {
+  console.log(_host, _port);
   const url = `/search?query=${query}`
   const fullUrl = `${api.defaults.baseURL}${url}`;
  console.log('apigetItemByDescription fullUrl:', fullUrl);
@@ -117,9 +138,7 @@ export function deletePosCountedStockByItemCode(itemCode) {
   return apiPosCountedStock.post(url);
 }
 
-const apiGrn = axios.create({
-  baseURL: `http://${_host}:${_port}/api/GrnTemp`,
-});
+
 
 export function apiAddGrn(data) {
   
