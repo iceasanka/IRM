@@ -27,20 +27,9 @@
         "VIBRATE",
         "FOREGROUND_SERVICE",
         "ACCESS_NETWORK_STATE",
-        "INTERNET",
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE",
-        "CAMERA",
-        "RECORD_AUDIO",
-        "VIBRATE",
-        "FOREGROUND_SERVICE",
-        "ACCESS_NETWORK_STATE",
         "INTERNET"
       ],
-      "usesCleartextTraffic": true,
-      "package": "com.iceasanka.IRM"
+      "usesCleartextTraffic": true
     },
     "plugins": [
       "expo-router",
