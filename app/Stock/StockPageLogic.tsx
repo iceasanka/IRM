@@ -130,7 +130,6 @@ const useStockPageLogic = () => {
         item: items,
         CountedStock: isOn ? parseFloat(posStock) : 0,
       });
-      console.log("Update Stock Response:", response.data);
       fetchStock(itemCode);
 
       setAddOpStock("");

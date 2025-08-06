@@ -23,7 +23,6 @@ const HomePage = () => {
   const handleSave = async () => {
     await AsyncStorage.setItem("api_ip", ip);
     await AsyncStorage.setItem("api_port", port);
-    console.log(`Saved IP: ${ip}, Port: ${port}`);
     await updateApiHostPortFromStorage();
     // Optionally show a message or reload the app/api
   };
@@ -50,7 +49,7 @@ const HomePage = () => {
           <Text style={styles.buttonText}>Save</Text>
         </Pressable>
       </View>
-      <View style={styles.buttonGroup}>
+      <View style={styles.buttonGroupContainer}>
         <Pressable
           style={styles.menuButton}
           onPress={() => router.push("/Stock")}
@@ -124,6 +123,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 8,
     width: "100%",
+  },
+  buttonGroupContainer: {
+    width: "90%",
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
   buttonGroup: {
     width: "100%",

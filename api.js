@@ -55,10 +55,9 @@ export const apigetItemWithDetailsByBarcode = (barcode) => {
 };
 
 export function apigetItemByDescription(query) {
-  console.log(_host, _port);
   const url = `/search?query=${query}`
-  const fullUrl = `${api.defaults.baseURL}${url}`;
- console.log('apigetItemByDescription fullUrl:', fullUrl);
+  //const fullUrl = `${api.defaults.baseURL}${url}`;
+ //console.log('apigetItemByDescription fullUrl:', fullUrl);
   return api.get(url);
 }
 
