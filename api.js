@@ -1,50 +1,68 @@
 import axios from 'axios';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Alert } from 'react-native';
 
 let _host = '';
 let _port = '';
 let api, apiStock, apiReturn, apiSupplier, apiPosStock, apiPosCountedStock, apiGrn;
 
+const DEFAULT_HOST = "192.168.1.6";
+const DEFAULT_PORT = "";
+
+// Builds a base URL for one API path from the current _host/_port.
+// Supports two ways of connecting:
+//  - Plain IP + port on the LAN, e.g. host="192.168.1.5" port="5000"
+//      -> http://192.168.1.5:5000/api/Items
+//  - A full tunnel/domain URL with no port, e.g.
+//    host="https://sharp-gras-gourmet-employer.trycloudflare.com" port=""
+//      -> https://sharp-gras-gourmet-employer.trycloudflare.com/api/Items
+function buildBaseUrl(apiPath) {
+  let host = (_host || DEFAULT_HOST).trim().replace(/\/+$/, '');
+
+  // If the saved host already includes a scheme (e.g. pasted tunnel URL),
+  // use that scheme and strip it off before recombining below.
+  let protocol = 'http';
+  const schemeMatch = host.match(/^(https?):\/\/(.*)$/i);
+  if (schemeMatch) {
+    protocol = schemeMatch[1].toLowerCase();
+    host = schemeMatch[2];
+  }
+
+  const port = (_port || '').trim();
+  const portPart = port ? `:${port}` : '';
+
+  return `${protocol}://${host}${portPart}/api/${apiPath}`;
+}
 
 // Call this function at app startup to update _host and _port from AsyncStorage
 export async function updateApiHostPortFromStorage() {
-  initApi();
+  await initApi();
 }
 
 export async function initApi() {
-  _host = await AsyncStorage.getItem("api_ip") || "192.168.1.5";
-  _port = await AsyncStorage.getItem("api_port") || "5000";
+  const storedHost = await AsyncStorage.getItem("api_ip");
+  const storedPort = await AsyncStorage.getItem("api_port");
 
+  _host = storedHost || DEFAULT_HOST;
+  // An empty string is a deliberate "no port" choice (e.g. a tunnel URL) —
+  // only fall back to the default port when nothing has ever been saved.
+  _port = storedPort !== null ? storedPort : DEFAULT_PORT;
 
- api = axios.create({
-  baseURL: `http://${_host}:${_port}/api/Items`,
-});
+  const itemsUrl = buildBaseUrl('Items');
+  api = axios.create({ baseURL: itemsUrl });
+  apiStock = axios.create({ baseURL: buildBaseUrl('Stocks') });
+  apiReturn = axios.create({ baseURL: buildBaseUrl('Return') });
+  apiSupplier = axios.create({ baseURL: buildBaseUrl('Supplier') });
+  apiPosStock = axios.create({ baseURL: buildBaseUrl('PosStock') });
+  apiPosCountedStock = axios.create({ baseURL: buildBaseUrl('PosCountedStock') });
+  apiGrn = axios.create({ baseURL: buildBaseUrl('GrnTemp') });
 
- apiStock = axios.create({
-  baseURL: `http://${_host}:${_port}/api/Stocks`,
-});
-
- apiReturn = axios.create({
-  baseURL: `http://${_host}:${_port}/api/Return`,
-});
-
- apiSupplier = axios.create({
-  baseURL: `http://${_host}:${_port}/api/Supplier`,
-});
-
- apiPosStock = axios.create({
-  baseURL: `http://${_host}:${_port}/api/PosStock`,
-});
-
- apiPosCountedStock = axios.create({
-  baseURL: `http://${_host}:${_port}/api/PosCountedStock`,
-});
-
-
- apiGrn = axios.create({
-  baseURL: `http://${_host}:${_port}/api/GrnTemp`,
-});
-
+  // Debug aid: show the final base URL being used, right when it's built —
+  // both in the Metro/terminal log and as an on-device popup, so you can
+  // confirm it (e.g. spot a stray :5000 on a tunnel URL) without digging
+  // through logs on the phone.
+  console.log('[api] Final base URL:', itemsUrl);
+  Alert.alert('API URL set', itemsUrl);
 }
 
 

@@ -25,6 +25,7 @@ Shift + Alt + A - block comment /uncomment
 eas build --profile production --platform android
 
 --------------------------------how to run 
+npx expo prebuild
 npx expo start
 
 -------------------------------
