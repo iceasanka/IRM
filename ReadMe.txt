@@ -34,3 +34,9 @@ npx expo start
   //const fullUrl = `${apiReturn.defaults.baseURL}${url}`;
   //console.log(fullUrl);
   -----------------------------
+  buid the app apk 
+
+  npx expo prebuild --clean
+eas build --profile production --platform android
+
+------------------------------

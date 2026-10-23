@@ -1,295 +1,263 @@
-import { useState, useRef, useEffect } from "react";
-import {
-  apigetItemWithDetailsByBarcode,
-  apiAddGrn,
-  apiDeleteGrn,
-  apigetSuppByDescription,
-  apiGetGrnTempByGrnReferenceAndStatus,
-  getPriceLink,
-} from "../../api.js";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Alert } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  plSearchByCode,
+  plGetLinks,
+  apiSearchItemzByDes,
+  apiSearchSupplierz,
+  stBalance,
+  mgGet,
+  mgAddLine,
+  mgUpdateLine,
+  mgDeleteLine,
+} from "../../api.js";
+
+// GRN on the NEW system: the phone scans a delivery into a SUSPENDED GRN of the supplier (one open draft per
+// supplier, GRN no from the same counter as the back office). Nothing goes into stock here - the back office opens
+// the GRN on the GRN Entry page, checks it, adds the supplier's invoice no and commits it to stock.
+// Same item at the same cost + selling price again -> the qty is added to that line.
+
+export interface Supplier { suppId: number; suppCode: string; suppName: string }
+export interface GrnItem {
+  itemId: number; barcode?: string | null; refCode?: string | null; descrip?: string | null;
+  retailPrice?: number | null; costPrice?: number | null;
+}
+export interface GrnLine {
+  grnNo: string; idx: number; itemId: number; barcode?: string | null; refCode?: string | null; descrip?: string | null;
+  qty: number; costPrice: number; sellPrice: number; gAmount: number;
+  itemCostPrice?: number | null; itemRetailPrice?: number | null; stockQty: number;
+}
+
+const SUPP_KEY = "grn_supplier";
+const errText = (e: any, fb: string) =>
+  e?.response?.data?.message || (typeof e?.response?.data === "string" ? e.response.data : "") || e?.message || fb;
+const num = (s: string) => (s.trim() === "" ? NaN : parseFloat(s));
+export const money = (n?: number | null) => (n == null ? "" : Number(n).toFixed(2));
+export const qtyText = (q?: number | null) => (q == null ? "" : String(Number(Number(q).toFixed(3))));
 
 const useGrnPageLogic = () => {
-  const [barcode, setBarcode] = useState("");
-  const [scanning, setScanning] = useState(false);
-  const itemRefInputRef = useRef(null);
-  const [itemDetails, setItemDetails] = useState<any>(null);
-  const [gridData, setGridData] = useState<any[]>([]);
-  const [formValues, setFormValues] = useState({
-    ItemRefCode: "",
-    CostPrice: "",
-    ERetPrice: "",
-    Qty: "",
-  });
-  const [_returnItems, setReturnItems] = useState<any[]>([]);
-  const qtyInputRef = useRef(null);
-  const itemRefCounter = useRef<number>(1);
-  const [message, setmessage] = useState("");
-  const [_suppmodalVisible, setsuppModalVisible] = useState(false);
-  const [_suppSuggestions, setSuppSuggestions] = useState([]);
-  const [_suppCode, setSuppCode] = useState("");
-  const [_supplier, setSupplier] = useState({});
-  const lastScannedRef = useRef<string | null>(null);
-  const [priceLinks, setPriceLinks] = useState<{ price: number }[]>([]);
+  const [supplier, setSupplier] = useState<Supplier | null>(null);
+  const [suppModal, setSuppModal] = useState(false);
+  const [suppResults, setSuppResults] = useState<Supplier[]>([]);
 
+  const [code, setCode] = useState("");
+  const [item, setItem] = useState<GrnItem | null>(null);
+  const [choices, setChoices] = useState<GrnItem[]>([]);
+  const [descModal, setDescModal] = useState(false);
+  const [descResults, setDescResults] = useState<any[]>([]);
+  const [cameraOn, setCameraOn] = useState(true);
+  const [stock, setStock] = useState<number | null>(null);
+  const [links, setLinks] = useState<number[]>([]);
+
+  const [cost, setCost] = useState("");
+  const [sell, setSell] = useState("");
+  const [qty, setQty] = useState("1");
+
+  const [lines, setLines] = useState<GrnLine[]>([]);
+  const [editLine, setEditLine] = useState<GrnLine | null>(null);
+  const [edit, setEdit] = useState({ qty: "", cost: "", sell: "" });
+  const [loading, setLoading] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null);
+  const qtyRef = useRef<any>(null);
+  const msgTimer = useRef<any>(null);
+
+  const say = (text: string, ok = true) => {
+    setMessage({ text, ok });
+    if (msgTimer.current) clearTimeout(msgTimer.current);
+    msgTimer.current = setTimeout(() => setMessage(null), ok ? 4000 : 8000);
+  };
+
+  // the supplier used last time
   useEffect(() => {
-    if (barcode) {
-      fetchItemDetails(barcode);
-    }
-  }, [barcode]);
+    AsyncStorage.getItem(SUPP_KEY).then((s) => { if (s) { try { setSupplier(JSON.parse(s)); } catch { /* */ } } });
+    return () => { if (msgTimer.current) clearTimeout(msgTimer.current); };
+  }, []);
 
-  const fetchPriceLinks = async (itemCode: string) => {
+  const loadLines = useCallback(async (s: Supplier | null = supplier) => {
+    if (!s) { setLines([]); return; }
+    setLoading(true);
     try {
-      const response = await getPriceLink(itemCode);
-      setPriceLinks(response.data);
-    } catch (error: any) {
-      setmessage(error.response.data);
+      const res = await mgGet(s.suppId);
+      setLines(res.data || []);
+    } catch (e) {
+      say(errText(e, "Could not load the GRN"), false);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [supplier]);
 
-  const handleScan = (scannedData: string) => {
-    if (scannedData === lastScannedRef.current) {
-      setmessage("Same barcode scanned consecutively. Ignoring.");
-      return;
-    }
-    lastScannedRef.current = scannedData;
-    setBarcode(scannedData);
-    setmessage(scannedData);
-  };
+  useEffect(() => { loadLines(supplier); }, [supplier]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const fetchItemDetails = async (barcode: string) => {
+  // ---- supplier ----
+  const searchSupplier = async (text: string) => {
+    if (text.trim().length < 1) { setSuppResults([]); return; }
     try {
-      const response = await apigetItemWithDetailsByBarcode(barcode);
-      const data = response.data;
-      if (data) {
-        setItemDetails(data);
-        setFormValues({
-          ItemRefCode: itemRefCounter.current.toString(),
-          CostPrice: "",
-          ERetPrice: "",
-          Qty: "",
-        });
-        setSuppCode(response.data.supp_Code);
-        fetchPriceLinks(data.item_Code);
-        setTimeout(() => {
-          itemRefInputRef.current?.focus();
-        }, 100);
-      } else {
-        clearForm();
-      }
-    } catch (error: any) {
-      clearForm();
-      setmessage(error.response.data);
+      const res = await apiSearchSupplierz(text.trim());
+      setSuppResults((res.data || []).filter((s: any) => s.status !== 0));
+    } catch {
+      setSuppResults([]);
     }
   };
 
-  const saveTempGrn = async () => {
-    if (!itemDetails) {
-      Alert.alert("Error", "Please scan a barcode first.");
-      return;
-    }
-    if (!itemDetails.barcode) {
-      Alert.alert("Error", "Bar code is required.");
-      return;
-    }
-    if (!formValues.ItemRefCode) {
-      Alert.alert("Error", "Item Ref Code is required.");
-      return;
-    }
-    if (!formValues.Qty) {
-      Alert.alert("Error", "Quantity is required.");
-      return;
-    }
-    const grnTemp = {
-      BarCode: itemDetails?.barcode,
-      ItemCode: itemDetails?.item_Code,
-      Descrip: itemDetails?.descrip,
-      Date: new Date().toISOString(),
-      Status: 1,
-      GrnReference: itemDetails?.supp_Code,
-      ItemRefCode: formValues.ItemRefCode,
-      CostPrice: parseFloat(formValues.CostPrice),
-      ERetPrice: parseFloat(formValues.ERetPrice),
-      Qty: parseFloat(formValues.Qty),
-    };
+  const pickSupplier = (s: Supplier) => {
+    const v = { suppId: s.suppId, suppCode: s.suppCode, suppName: s.suppName };
+    setSupplier(v);
+    setSuppModal(false);
+    setSuppResults([]);
+    AsyncStorage.setItem(SUPP_KEY, JSON.stringify(v));
+  };
+
+  // ---- item ----
+  const pickItem = (it: GrnItem) => {
+    setItem(it);
+    setChoices([]);
+    setCode("");
+    setCost(money(it.costPrice));
+    setSell(money(it.retailPrice));
+    setQty("1");
+    setStock(null);
+    setLinks([]);
+    stBalance(it.itemId).then((r: any) => setStock(r.data?.qty ?? 0)).catch(() => setStock(null));
+    plGetLinks(it.itemId).then((r: any) => setLinks((r.data || []).map((l: any) => l.retailPrice))).catch(() => setLinks([]));
+    setTimeout(() => qtyRef.current?.focus?.(), 200);
+  };
+
+  const lookup = async (value: string) => {
+    const v = (value || "").trim();
+    if (!v) return;
     try {
-      const _response = await apiAddGrn(grnTemp);
-      const added = _response.data.data;
-      const _item = {
-        ...added,
-        selected: false,
-      };
-      setReturnItems((prevItems) => [...prevItems, _item]);
-      itemRefCounter.current += 1;
-      setmessage(_response.data.message);
-      setItemDetails(null);
-      clearForm();
-    } catch (error: any) {
-      setmessage(error.response.data);
+      const res = await plSearchByCode(v);
+      const list: GrnItem[] = res.data || [];
+      if (list.length === 0) say(`No item for ${v}`, false);
+      else if (list.length === 1) pickItem(list[0]);
+      else setChoices(list);
+    } catch (e) {
+      say(errText(e, "Item lookup failed"), false);
     }
   };
 
-  const toggleSelect = (id: number) => {
-    setReturnItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === id ? { ...item, selected: !item.selected } : item
-      )
-    );
-  };
-
-  const clearForm = () => {
-    setBarcode("");
-    setItemDetails(null);
-    setFormValues({
-      ItemRefCode: "",
-      CostPrice: "",
-      ERetPrice: "",
-      Qty: "",
-    });
-    lastScannedRef.current = null;
-    setPriceLinks([]);
-    setTimeout(() => {
-      itemRefInputRef.current?.focus();
-    }, 100);
-  };
-
-  const clearAllForm = () => {
-    clearForm();
-    setReturnItems([]);
-    setSupplier({});
-    setSuppCode("");
-    setSuppSuggestions([]);
-    itemRefCounter.current = 1;
-  };
-
-  function DeleteItems() {
-    const selectedItems = _returnItems.filter((item) => item.selected);
-    if (selectedItems.length === 0) {
-      Alert.alert("No items selected", "Please select items to delete.");
+  // camera: the same item again = one more
+  const handleScan = (data: string) => {
+    if (item && (data === item.barcode || data === item.refCode)) {
+      const next = (parseFloat(qty) || 0) + 1;
+      setQty(String(next));
+      say(`Same item again - qty ${next}`);
       return;
     }
-    if (selectedItems.length > 1) {
-      Alert.alert("Error", "Please select only one item to delete.");
+    lookup(data);
+  };
+
+  const searchByDescription = async (text: string) => {
+    if (text.trim().length < 3) { setDescResults([]); return; }
+    try {
+      const res = await apiSearchItemzByDes(text.trim());
+      setDescResults((res.data || []).slice(0, 40));
+    } catch {
+      setDescResults([]);
+    }
+  };
+
+  const pickDescription = (it: GrnItem) => {
+    setDescModal(false);
+    setDescResults([]);
+    pickItem(it);
+  };
+
+  const changeQty = (d: number) => setQty((q) => String(Math.max(1, (parseFloat(q) || 0) + d)));
+
+  const clearItem = () => { setItem(null); setChoices([]); setCode(""); setQty("1"); setCost(""); setSell(""); setStock(null); setLinks([]); };
+
+  const addLine = async () => {
+    if (!supplier) { Alert.alert("Supplier", "Select the supplier first."); return; }
+    if (!item) { say("Scan an item first", false); return; }
+    const q = num(qty), c = num(cost), p = num(sell);
+    if (!(q > 0)) { say("Enter a qty more than 0", false); return; }
+    if (isNaN(c) || c < 0) { say("Enter the cost price", false); return; }
+    if (isNaN(p) || p < 0) { say("Enter the selling price", false); return; }
+    if (p > 0 && c > p) {
+      Alert.alert("Check the prices", `The cost ${money(c)} is more than the selling price ${money(p)}.`, [
+        { text: "Change", style: "cancel" },
+        { text: "Add anyway", onPress: () => sendLine(q, c, p) },
+      ]);
       return;
     }
-    Alert.alert("Delete", "Are you sure you want to delete?", [
+    sendLine(q, c, p);
+  };
+
+  const sendLine = async (q: number, c: number, p: number) => {
+    if (!supplier || !item) return;
+    setBusy(true);
+    try {
+      const res = await mgAddLine({ suppId: supplier.suppId, itemId: item.itemId, qty: q, costPrice: c, sellPrice: p });
+      say(`${item.descrip} x ${qtyText(q)} added to ${res.data?.grnNo}`);
+      clearItem();
+      loadLines();
+    } catch (e) {
+      say(errText(e, "Not added"), false);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // ---- lines ----
+  const openLine = (l: GrnLine) => {
+    setEditLine(l);
+    setEdit({ qty: qtyText(l.qty), cost: money(l.costPrice), sell: money(l.sellPrice) });
+  };
+
+  const saveLine = async () => {
+    if (!editLine) return;
+    const q = num(edit.qty), c = num(edit.cost), p = num(edit.sell);
+    if (!(q > 0) || isNaN(c) || c < 0 || isNaN(p) || p < 0) { Alert.alert("Check", "Enter the qty, cost and selling price."); return; }
+    setBusy(true);
+    try {
+      await mgUpdateLine(editLine.idx, { qty: q, costPrice: c, sellPrice: p });
+      say("Line saved");
+      setEditLine(null);
+      loadLines();
+    } catch (e) {
+      Alert.alert("Not saved", errText(e, "Not saved"));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const deleteLine = () => {
+    if (!editLine) return;
+    const l = editLine;
+    Alert.alert("Delete", `Delete ${l.descrip} x ${qtyText(l.qty)} from the GRN?`, [
       { text: "Cancel", style: "cancel" },
       {
-        text: "OK",
-        onPress: async () => {
-          const _response = await apiDeleteGrn(selectedItems[0].id);
-          const deleted = _response.data.data;
-          if (deleted) {
-            setmessage(_response.data.message);
-            //Alert.alert("Success", _response.data.message);
-            setReturnItems((prevItems) =>
-              prevItems.filter((item) => !item.selected)
-            );
+        text: "Delete", style: "destructive", onPress: async () => {
+          setBusy(true);
+          try {
+            const res = await mgDeleteLine(l.idx);
+            say(res.data?.linesLeft === 0 ? `${l.descrip} deleted - the GRN was empty, so it was deleted too` : `${l.descrip} deleted`);
+            setEditLine(null);
+            loadLines();
+          } catch (e) {
+            Alert.alert("Not deleted", errText(e, "Not deleted"));
+          } finally {
+            setBusy(false);
           }
         },
       },
     ]);
-  }
-
-  async function GetGrnItemsByGrnRef(_suppCode: string) {
-    try {
-      if (!_suppCode || _suppCode.trim() === "") {
-        Alert.alert("Invalid Input", "Please enter supplier Code.");
-        return;
-      }
-      const response = await apiGetGrnTempByGrnReferenceAndStatus(_suppCode, 1);
-      const data = response.data.data;
-      setReturnItems([]);
-      if (data.length > 0) {
-        const updatedItems = data.map((item) => ({
-          ...item,
-          selected: false,
-        }));
-        setReturnItems(updatedItems);
-      } else {
-        Alert.alert(
-          "No items found",
-          "No items found for the given supplier code."
-        );
-        setReturnItems([]);
-      }
-    } catch (error: any) {
-      setmessage(error.response.data);
-    }
-  }
-
-  const handleSuppDesChange = (text: string) => {
-    try {
-      setSuppCode(text);
-      if (text.length > 0) {
-        SearchBySuppDes(text);
-      } else {
-        setSuppSuggestions([]);
-      }
-    } catch (error: any) {
-      setmessage(error.response.data);
-    }
   };
 
-  const SearchBySuppDes = async (query: any) => {
-    try {
-      const response = await apigetSuppByDescription(query);
-      setSuppSuggestions(response.data);
-    } catch (error: any) {
-      setmessage(error.response.data);
-    }
-  };
-
-  const GetSupplier = (suggestion: any) => {
-    try {
-      setSuppCode(suggestion.supp_Code);
-      setSuppSuggestions([]);
-      setsuppModalVisible(false);
-      setSupplier(suggestion);
-    } catch (error: any) {
-      setmessage(error.response.data);
-    }
-  };
+  const grnNo = lines[0]?.grnNo ?? null;
+  const total = lines.reduce((a, l) => a + (l.gAmount || 0), 0);
+  const totalQty = lines.reduce((a, l) => a + (l.qty || 0), 0);
 
   return {
-    barcode,
-    setBarcode,
-    scanning,
-    setScanning,
-    itemRefInputRef,
-    itemDetails,
-    gridData,
-    setGridData,
-    formValues,
-    setFormValues,
-    _returnItems,
-    setReturnItems,
-    qtyInputRef,
-    itemRefCounter,
-    message,
-    setmessage,
-    _suppmodalVisible,
-    setsuppModalVisible,
-    _suppSuggestions,
-    setSuppSuggestions,
-    _suppCode,
-    setSuppCode,
-    _supplier,
-    setSupplier,
-    lastScannedRef,
-    priceLinks,
-    setPriceLinks,
-    handleScan,
-    fetchItemDetails,
-    saveTempGrn,
-    toggleSelect,
-    clearForm,
-    clearAllForm,
-    DeleteItems,
-    GetGrnItemsByGrnRef,
-    handleSuppDesChange,
-    SearchBySuppDes,
-    GetSupplier,
+    supplier, suppModal, setSuppModal, suppResults, searchSupplier, pickSupplier,
+    code, setCode, item, choices, setChoices, lookup, handleScan, pickItem, clearItem, cameraOn, setCameraOn,
+    descModal, setDescModal, descResults, searchByDescription, pickDescription, stock, links,
+    cost, setCost, sell, setSell, qty, setQty, changeQty, qtyRef, addLine,
+    lines, grnNo, total, totalQty, loadLines, loading, busy,
+    editLine, setEditLine, edit, setEdit, openLine, saveLine, deleteLine, message,
   };
 };
 

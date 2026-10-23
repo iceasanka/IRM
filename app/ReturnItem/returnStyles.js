@@ -1,181 +1,97 @@
 import { StyleSheet } from "react-native";
+import { C } from "../../theme";
+
+// colours: theme.js (same as the back office)
+export { C };
 
 const returnStyles = StyleSheet.create({
-  returnGridContainer: {
-    height: 250,
+  container: { flex: 1, backgroundColor: C.page },
+  scroll: { padding: 10, paddingBottom: 90 },
+
+  // supplier bar
+  supplierBar: {
+    flexDirection: "row", alignItems: "center", backgroundColor: C.primary, paddingHorizontal: 12, paddingVertical: 10,
   },
-  container: {
-    flex: 1,
-    padding: 10,
+  supplierLabel: { color: C.sky, fontSize: 12, fontWeight: "bold" },
+  supplierName: { color: C.white, fontSize: 17, fontWeight: "bold" },
+  supplierChange: {
+    marginLeft: "auto", borderWidth: 1, borderColor: C.sky, paddingHorizontal: 12, paddingVertical: 6,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 10,
-    textAlign: "center",
+  supplierChangeText: { color: C.white, fontWeight: "bold" },
+
+  // camera + typed code
+  scanRow: { flexDirection: "row", gap: 8, marginTop: 10 },
+  cameraBox: { height: 170, overflow: "hidden", backgroundColor: "#000", marginTop: 10, alignItems: "center", justifyContent: "center" },
+  codeInput: {
+    flex: 1, height: 44, borderWidth: 1, borderColor: C.border, backgroundColor: C.card, paddingHorizontal: 10,
+    fontSize: 16, color: C.text,
   },
-  row: {
-    flexDirection: "row",
-    borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
+  smallButton: { height: 44, paddingHorizontal: 14, backgroundColor: C.primary, alignItems: "center", justifyContent: "center" },
+  smallButtonOutline: { height: 44, paddingHorizontal: 12, borderWidth: 1, borderColor: C.primary, alignItems: "center", justifyContent: "center" },
+  smallButtonText: { color: C.white, fontWeight: "bold", fontSize: 15 },
+  smallButtonOutlineText: { color: C.primary, fontWeight: "bold", fontSize: 15 },
+
+  // message
+  message: { marginTop: 8, paddingVertical: 6, paddingHorizontal: 10, fontWeight: "bold", textAlign: "center" },
+  messageOk: { backgroundColor: C.greenSoft, color: C.green },
+  messageErr: { backgroundColor: C.redSoft, color: C.red },
+
+  // item card
+  card: { backgroundColor: C.card, borderWidth: 1, borderColor: C.border, padding: 10, marginTop: 10 },
+  itemName: { fontSize: 18, fontWeight: "bold", color: C.text },
+  itemCode: { fontSize: 13, color: C.muted, marginTop: 2 },
+  infoRow: { flexDirection: "row", marginTop: 8 },
+  infoCell: { flex: 1 },
+  infoLabel: { fontSize: 11, color: C.muted },
+  infoValue: { fontSize: 16, fontWeight: "bold", color: C.text },
+  stockOk: { color: C.green, fontSize: 22 },
+  stockBad: { color: C.red, fontSize: 22 },
+
+  qtyRow: { flexDirection: "row", alignItems: "center", marginTop: 10 },
+  qtyButton: { width: 48, height: 48, backgroundColor: C.primarySoft, alignItems: "center", justifyContent: "center" },
+  qtyButtonText: { fontSize: 26, fontWeight: "bold", color: C.primary },
+  qtyInput: {
+    width: 90, height: 48, marginHorizontal: 6, borderWidth: 1, borderColor: C.primary, backgroundColor: C.white,
+    textAlign: "center", fontSize: 22, fontWeight: "bold", color: C.text,
   },
-   row_3: {
-    flexDirection: "row",
-    borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
-    
+  addButton: { flex: 1, height: 48, marginLeft: 10, backgroundColor: C.primary, alignItems: "center", justifyContent: "center" },
+  addButtonText: { color: C.white, fontSize: 18, fontWeight: "bold" },
+
+  chips: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 10 },
+  chip: { paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: C.border, backgroundColor: C.white },
+  chipOn: { backgroundColor: C.primary, borderColor: C.primary },
+  chipText: { color: C.text, fontSize: 13 },
+  chipTextOn: { color: C.white, fontWeight: "bold" },
+
+  // list
+  listHeader: { flexDirection: "row", alignItems: "center", marginTop: 14, marginBottom: 6 },
+  listTitle: { fontSize: 16, fontWeight: "bold", color: C.text },
+  listTotal: { marginLeft: "auto", fontSize: 16, fontWeight: "bold", color: C.primary },
+
+  // bottom actions
+  bottomBar: {
+    position: "absolute", left: 0, right: 0, bottom: 0, flexDirection: "row", gap: 6, padding: 8,
+    backgroundColor: C.card, borderTopWidth: 1, borderTopColor: C.border,
   },
-  cell: {
-    flex: 1,
-    justifyContent: "center",
-    paddingHorizontal: 3,
-  },
-  cell_3_input: {
-  flex: 1,
-  justifyContent: "center",
-  paddingHorizontal: 3,
-},
-  cell_3_label: {
-  width: 120, // fixed width for label
-  justifyContent: "center",
-  paddingHorizontal: 3,
-},
-  labelText: {
-    fontWeight: "bold",
-    color: "#333",
-  },
-  valueText: {
-    color: "#555",
-     fontWeight: "bold",
-  },
-    valueText_2: {
-    color: "#555",
-    fontWeight: "bold",
-     padding: 0,
-  margin: 0,
-  borderWidth: 0,
-  
-  },
-  modalContainer_2: {
-    flex: 1,
-    justifyContent: "flex-start",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
-  popup_2: {
-    width: "90%",
-    height: "70%",
-    marginTop: 60,
-    backgroundColor: "white",
-    borderRadius: 0,
-    padding: 5,
-    alignItems: "center",
-  },
+  barButton: { flex: 1, height: 50, alignItems: "center", justifyContent: "center" },
+  barButtonText: { color: C.white, fontWeight: "bold", fontSize: 15 },
+  barDelete: { backgroundColor: C.red },
+  barReady: { backgroundColor: C.green },
+  barProcess: { backgroundColor: C.primary },
+  barDisabled: { opacity: 0.4 },
+
+  // popups
+  modalBack: { flex: 1, backgroundColor: "rgba(20,20,50,0.45)", justifyContent: "center", padding: 16 },
+  modalBox: { backgroundColor: C.card, maxHeight: "80%", padding: 12 },
+  modalTitle: { fontSize: 17, fontWeight: "bold", color: C.text, marginBottom: 8 },
   searchInput: {
-    borderColor: "gray",
-    borderWidth: 1,
-    width: "100%",
-    padding: 10,
-    marginBottom: 10,
+    height: 46, borderWidth: 1, borderColor: C.primary, backgroundColor: C.white, paddingHorizontal: 10, fontSize: 16,
+    color: C.text,
   },
-  suggestionItem: {
-    backgroundColor: "white",
-    padding: 2,
-    marginBottom: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  suggestionText: {
-    color: "#333",
-    fontSize: 15,
-  },
-  suggestionsList: {
-    width: "100%",
-    borderTopWidth: 1,
-    borderTopColor: "#ddd",
-    marginTop: 10,
-  },
-  vw_2: {
-    justifyContent: "flex-end",
-    flexDirection: "row",
-    alignItems: "flex-end",
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: "flex-start",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
-  popup: {
-    width: "90%",
-    height: "45%",
-    marginTop: 60,
-    backgroundColor: "white",
-    borderRadius: 0,
-    padding: 5,
-    alignItems: "center",
-  },
-  inputTextBox: {
-    borderColor: "gray",
-    borderWidth: 1,
-    fontSize: 30,
-    fontWeight: "bold",
-    padding: 0,
-    margin: 0,
-    borderWidth: 1,
-    color: "#d42727bd",
-  },
-  scanButton: {
-    backgroundColor: "#007BFF",
-    padding: 10,
-    borderRadius: 5,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  clearButton: {
-    padding: 10,
-    borderRadius: 5,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#DC3545",
-  },
-  buttonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  addLinkButton: {
-    backgroundColor: "#28a745",
-    padding: 10,
-    borderRadius: 5,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  deleteButton: {
-    backgroundColor: "#DC3545",
-    padding: 10,
-    borderRadius: 5,
-    justifyContent: "center",
-    alignItems: "center",
-  }, barcodeScannerContainer: {
-    width: "100%",
-    height: 120, // or 30 if you prefer
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 0,
-    backgroundColor: "#f5f5f5",
-    borderRadius: 8,
-    overflow: "hidden",
-  },  messageArea: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 0,
-    height: 20,
-  },
+  suggestionItem: { paddingVertical: 12, paddingHorizontal: 8, borderBottomWidth: 1, borderBottomColor: C.border },
+  suggestionText: { fontSize: 16, color: C.text },
+  suggestionSub: { fontSize: 12, color: C.muted },
+  modalClose: { marginTop: 10, height: 46, backgroundColor: C.primary, alignItems: "center", justifyContent: "center" },
 });
 
 export default returnStyles;

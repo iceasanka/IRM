@@ -2,19 +2,20 @@
   "expo": {
     "name": "IRM",
     "slug": "IRM",
-    "scheme": "IRM",
+    "scheme": "irm",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon-new.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash-new.png",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#4B49AC"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#4B49AC"
       },
       "versionCode": 1,
       "permissions": [

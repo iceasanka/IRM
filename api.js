@@ -5,8 +5,12 @@ import { Alert } from 'react-native';
 let _host = '';
 let _port = '';
 let api, apiStock, apiReturn, apiSupplier, apiPosStock, apiPosCountedStock, apiGrn;
+// new system (z_ tables): Return Items list, suppliers, items
+let apiReturnList, apiSupplierz, apiItemz;
+// new system: stock ledger / adjustments, till sync status, mobile GRN drafts
+let apiStockLedger, apiStockAdj, apiSync, apiMobileGrn;
 
-const DEFAULT_HOST = "192.168.1.6";
+const DEFAULT_HOST = "192.168.1.5";
 const DEFAULT_PORT = "";
 
 // Builds a base URL for one API path from the current _host/_port.
@@ -56,13 +60,21 @@ export async function initApi() {
   apiPosStock = axios.create({ baseURL: buildBaseUrl('PosStock') });
   apiPosCountedStock = axios.create({ baseURL: buildBaseUrl('PosCountedStock') });
   apiGrn = axios.create({ baseURL: buildBaseUrl('GrnTemp') });
+  apiReturnList = axios.create({ baseURL: buildBaseUrl('ReturnList'), timeout: 20000 });
+  apiSupplierz = axios.create({ baseURL: buildBaseUrl('Supplierz'), timeout: 20000 });
+  apiItemz = axios.create({ baseURL: buildBaseUrl('Itemz'), timeout: 20000 });
+  apiStockLedger = axios.create({ baseURL: buildBaseUrl('StockLedger'), timeout: 20000 });
+  apiStockAdj = axios.create({ baseURL: buildBaseUrl('StockAdjustment'), timeout: 20000 });
+  apiSync = axios.create({ baseURL: buildBaseUrl('Sync'), timeout: 8000 });
+  apiMobileGrn = axios.create({ baseURL: buildBaseUrl('MobileGrn'), timeout: 20000 });
 
-  // Debug aid: show the final base URL being used, right when it's built —
-  // both in the Metro/terminal log and as an on-device popup, so you can
-  // confirm it (e.g. spot a stray :5000 on a tunnel URL) without digging
-  // through logs on the phone.
+  // The home page shows this URL and whether the server answers, so no popup here any more
   console.log('[api] Final base URL:', itemsUrl);
-  Alert.alert('API URL set', itemsUrl);
+}
+
+// the server address now in use, e.g. http://192.168.1.5:5000 (home page)
+export function apiBaseUrl() {
+  return buildBaseUrl('').replace(/\/api\/$/, '');
 }
 
 
@@ -171,6 +183,133 @@ export function apiAddGrn(data) {
 export function apiDeleteGrn(id) {
   const url = `/DeleteGrnTemp/${id}`;
   return apiGrn.delete(url);
+}
+
+// ---- Return Items list on the new system (api/ReturnList) - the same list as the back office Return Items page ----
+
+// scanned / typed code -> [{ itemId, barcode, refCode, descrip, costPrice, retailPrice, stockQty, suppId }]
+export function rlLookup(code) {
+  return apiReturnList.get('/Lookup', { params: { code } });
+}
+
+// open rows (Added + Ready) of one supplier (suppId empty = all)
+export function rlList(suppId) {
+  return apiReturnList.get('', { params: suppId ? { suppId } : {} });
+}
+
+// { itemId, suppId, qty, reason, remark } - the same item + supplier still "Added" gets the qty added
+export function rlAdd(data) {
+  return apiReturnList.post('', { ...data, source: 1 });
+}
+
+export function rlUpdate(id, data) {
+  return apiReturnList.put(`/${id}`, data);
+}
+
+// status 2 = Ready, 1 = back to Added
+export function rlSetStatus(ids, status) {
+  return apiReturnList.post('/status', { ids, status, userId: 'mobile' });
+}
+
+export function rlDelete(ids) {
+  return apiReturnList.post('/delete', { ids });
+}
+
+// Ready rows of one supplier -> a PRN, taken off stock now (post = true)
+export function rlProcess(ids, post = true) {
+  return apiReturnList.post('/process', { ids, post, userId: 'mobile', remark: 'Return Items (mobile app)' });
+}
+
+export function rlPrint(ids) {
+  return apiReturnList.post('/print', { ids });
+}
+
+// suppliers by name: [{ suppId, suppCode, suppName }]
+export function apiSearchSupplierz(name) {
+  return apiSupplierz.get(`/search/${encodeURIComponent(name)}`);
+}
+
+// items by description: [{ itemId, barcode, refCode, descrip, ... }]
+export function apiSearchItemzByDes(query) {
+  return apiItemz.get('/SearchByDes', { params: { query } });
+}
+
+// ---- Price links on the new system (api/Itemz) - the same links as the back office Item Entry page ----
+
+// barcode / ref code -> [ItemzWithDetails] (itemId, descrip, retailPrice, costPrice, maxPrice, ...)
+export function plSearchByCode(query) {
+  return apiItemz.get('/SearchByCode', { params: { query } });
+}
+
+// active links, lowest price first: [{ priceLinkId, retailPrice, wholesalePrice, costPrice, remark, cDate }]
+export function plGetLinks(itemId) {
+  return apiItemz.get(`/PriceLinks/${itemId}`);
+}
+
+// { itemId, retailPrice, wholesalePrice?, costPrice?, remark? }
+export function plAddLink(data) {
+  return apiItemz.post('/AddPriceLink', data);
+}
+
+export function plDeleteLink(priceLinkId) {
+  return apiItemz.delete(`/PriceLink/${priceLinkId}`);
+}
+
+// the item's normal retail price
+export function plUpdateRetailPrice(itemId, retailPrice) {
+  return apiItemz.post('/UpdateRetailPrice', { itemId, retailPrice });
+}
+
+// ---- Stock on the new system (stock ledger) - till bills come in by themselves (about every minute) ----
+
+// { itemId, qty, avgCost, uDate, ... }
+export function stBalance(itemId) {
+  return apiStockLedger.get(`/Balance/${itemId}`);
+}
+
+// movements with running balance: { openingQty, closingQty, rows: [{ txnDate, txnTypeName, docNo, qtyIn, qtyOut, balance }] }
+export function stItemCard(itemId, fromDate) {
+  return apiStockLedger.get('/ItemCard', { params: { itemId, fromDate } });
+}
+
+// [{ reasonId, reasonName }]
+export function stReasons() {
+  return apiStockAdj.get('/Reasons');
+}
+
+// one item: countedQty = set the stock to what was counted, adjQty = + add / - remove. Saved = posted (ADJ no).
+// opts: { countedQty, adjQty, reasonId } - one of countedQty / adjQty, the other null
+export function stAdjust(itemId, opts) {
+  const { countedQty, adjQty, reasonId } = opts;
+  return apiStockAdj.post('/Save', {
+    reasonId, remark: 'Mobile app', userId: 'mobile',
+    lines: [{ itemId, countedQty: countedQty ?? null, adjQty: adjQty ?? null, reasonId }],
+  });
+}
+
+// tills: [{ terminalCode, terminalName, status, lastSyncAt, isStale }] - also used as "is the server there"
+export function syncTerminals() {
+  return apiSync.get('/Terminals');
+}
+
+// ---- GRN on the new system: the phone fills a suspended GRN of the supplier, the back office commits it ----
+
+// lines of the supplier's open draft, newest first (empty = no draft yet)
+export function mgGet(suppId) {
+  return apiMobileGrn.get('', { params: { suppId } });
+}
+
+// { suppId, itemId, qty, costPrice, sellPrice } -> { grnNo, idx }. Same item + prices -> qty added
+export function mgAddLine(data) {
+  return apiMobileGrn.post('/line', data);
+}
+
+export function mgUpdateLine(idx, data) {
+  return apiMobileGrn.put(`/line/${idx}`, data);
+}
+
+export function mgDeleteLine(idx) {
+  return apiMobileGrn.delete(`/line/${idx}`);
 }
 
 //GetGrnTempByGrnReferenceAndStatus

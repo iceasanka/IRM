@@ -1,471 +1,274 @@
-import { useState, useEffect, useRef } from "react";
-import {
-  apigetStockByItemCode,
-  apigetItemWithDetailsByBarcode,
-  apigetItemByDescription,
-  getAllReturnItemsBySuppCode,
-  apiAddReturnItem,
-  apiUpdateItemById,
-  apigetSuppByDescription,
-  apiProcessReturnItems,
-  apiPrint,
-  apiDeleteItemById,
-} from "../../api.js";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Alert } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  rlLookup,
+  rlList,
+  rlAdd,
+  rlSetStatus,
+  rlDelete,
+  rlProcess,
+  rlPrint,
+  apiSearchSupplierz,
+  apiSearchItemzByDes,
+} from "../../api.js";
+
+// Return Stock on the NEW system (api/ReturnList): the same list as the back office Return Items page.
+// Pick the supplier, scan items (scanning the same item again = qty + 1), Add. Then select rows:
+// Ready = checked / packed, Process = a PRN of the Ready rows, taken off stock at once.
+
+export interface Supplier { suppId: number; suppCode: string; suppName: string }
+export interface LookupItem {
+  itemId: number; barcode?: string | null; refCode?: string | null; descrip?: string | null;
+  costPrice?: number | null; retailPrice?: number | null; stockQty: number; suppId?: number | null;
+}
+export interface ReturnRow {
+  returnId: number; itemId: number; barcode?: string | null; refCode?: string | null; descrip?: string | null;
+  suppId: number; suppName?: string | null; qty: number; costPrice?: number | null; amount: number; stockQty: number;
+  reason?: string | null; status: number; statusText: string; source: number;
+}
+
+export const REASONS = ["Damaged", "Expired", "Not selling", "Wrong item", "Other"];
+const SUPP_KEY = "return_supplier";
+
+const errText = (e: any, fb: string) => e?.response?.data?.message || (typeof e?.response?.data === "string" ? e.response.data : "") || e?.message || fb;
 
 const useReturnPageLogic = () => {
-  const [_modalVisible, setModalVisible] = useState(false);
-  const [_description, setDescription] = useState("");
-  const inputRef2 = useRef<any>(null);
-  const [_suggestions, setSuggestions] = useState([]);
-  const [_itemCode, setItemCode] = useState("");
-  interface ItemDetails {
-    item_Code: string;
-    ref_Code?: string;
-    barcode?: string;
-    descrip?: string;
-    supp_Code?: string;
-    cost_Price?: number;
-    eRet_Price?: number;
-    [key: string]: any;
-  }
-  const [_items, setItems] = useState<ItemDetails>({ item_Code: "" });
-  const [_stock, setStock] = useState("");
-  const [_barcode, setBarcode] = useState("");
-  const inputRef = useRef<any>(null);
-  const [_retunQty, setReturnQty] = useState("");
-  type ReturnItem = { [key: string]: any }; // You can define a more specific type if you know the structure
-  const [_returnItems, setReturnItems] = useState<ReturnItem[]>([]);
-  const [_suppSuggestions, setSuppSuggestions] = useState([]);
-  const [_suppCode, setSuppCode] = useState("");
-  const [_supplier, setSupplier] = useState({});
-  const [_suppmodalVisible, setsuppModalVisible] = useState(false);
-  const [message, setmessage] = useState("");
-  const lastScannedRef = useRef<string | null>(null);
+  const [supplier, setSupplier] = useState<Supplier | null>(null);
+  const [suppModal, setSuppModal] = useState(false);
+  const [suppResults, setSuppResults] = useState<Supplier[]>([]);
 
+  const [code, setCode] = useState("");
+  const [item, setItem] = useState<LookupItem | null>(null);
+  const [choices, setChoices] = useState<LookupItem[]>([]);
+  const [descModal, setDescModal] = useState(false);
+  const [descResults, setDescResults] = useState<any[]>([]);
+  const [qty, setQty] = useState("1");
+  const [reason, setReason] = useState("Damaged");
+  const [cameraOn, setCameraOn] = useState(true);
+
+  const [rows, setRows] = useState<ReturnRow[]>([]);
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [loading, setLoading] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null);
+  const qtyRef = useRef<any>(null);
+  const msgTimer = useRef<any>(null);
+
+  const say = (text: string, ok = true) => {
+    setMessage({ text, ok });
+    if (msgTimer.current) clearTimeout(msgTimer.current);
+    msgTimer.current = setTimeout(() => setMessage(null), ok ? 4000 : 8000);
+  };
+
+  // the supplier used last time
   useEffect(() => {
-    if (_modalVisible) {
-      setTimeout(() => {
-        if (inputRef2.current) {
-          inputRef2.current.focus();
-        }
-      }, 100);
-    }
-  }, [_modalVisible]);
+    AsyncStorage.getItem(SUPP_KEY).then((s) => { if (s) { try { setSupplier(JSON.parse(s)); } catch { /* */ } } });
+    return () => { if (msgTimer.current) clearTimeout(msgTimer.current); };
+  }, []);
 
-  useEffect(() => {
-    if (_barcode) {
-      GetItemDetails(_barcode);
-      setTimeout(() => {
-        if (inputRef.current) {
-          inputRef.current.focus();
-        }
-      }, 200);
-    }
-  }, [_barcode]);
-
-  const GetItem = (suggestion: any) => {
-    setDescription(suggestion.descrip);
-    setSuggestions([]);
-    setModalVisible(false);
-    GetItemDetails(suggestion.item_Code);
-  };
-
-  const handleDescriptionChange = (text: string) => {
-    setDescription(text);
-    if (text.length > 0) {
-      SearchByDescription(text);
-    } else {
-      setSuggestions([]);
-    }
-  };
-
-  const SearchByDescription = async (query: string) => {
-    const response = await apigetItemByDescription(query);
-    setSuggestions(response.data);
-  };
-
-  const GetItemDetails = async (barcode: string) => {
+  const loadList = useCallback(async (s: Supplier | null = supplier) => {
+    if (!s) { setRows([]); return; }
+    setLoading(true);
     try {
-      if (barcode) {
-        const response = await apigetItemWithDetailsByBarcode(barcode);
-        const data = response.data;
-        if (response.data == "") {
-          clearForm();
-        } else {
-          setItemCode(data.item_Code);
-          setDescription(data.descrip);
-          setItems(response.data);
-          setSuppCode(response.data.supp_Code);
-          GetStock(data.item_Code);
-        }
-      }
-    } catch (error: any) {
-      if (error.response) {
-        clearForm();
-        setmessage(error.response.data);
-      }
-      return;
+      const res = await rlList(s.suppId);
+      const data: ReturnRow[] = res.data || [];
+      setRows(data);
+      setSelected((sel) => new Set([...sel].filter((id) => data.some((r) => r.returnId === id))));
+    } catch (e) {
+      say(errText(e, "Could not load the return list"), false);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [supplier]);
 
-  const GetStock = async (itemCode: string) => {
+  useEffect(() => { loadList(supplier); }, [supplier]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ---- supplier ----
+  const searchSupplier = async (text: string) => {
+    if (text.trim().length < 1) { setSuppResults([]); return; }
     try {
-      const response = await apigetStockByItemCode(itemCode);
-      setStock(response.data.stock);
-    } catch (error: any) {
-      if (error.response) {
-        setmessage(error.response.data);
-      }
-      return;
+      const res = await apiSearchSupplierz(text.trim());
+      setSuppResults((res.data || []).filter((s: any) => s.status !== 0));
+    } catch {
+      setSuppResults([]);
     }
   };
 
-  const GetReturnItemListBySuppCode = async (suppCode: string) => {
-    if (!suppCode || suppCode.trim() === "") {
-      Alert.alert("Invalid Input", "Please enter supplier Code.");
-      return;
-    }
+  const pickSupplier = (s: Supplier) => {
+    const v = { suppId: s.suppId, suppCode: s.suppCode, suppName: s.suppName };
+    setSupplier(v);
+    setSuppModal(false);
+    setSuppResults([]);
+    setSelected(new Set());
+    AsyncStorage.setItem(SUPP_KEY, JSON.stringify(v));
+  };
+
+  // ---- item ----
+  const pickItem = (it: LookupItem) => {
+    setItem(it);
+    setChoices([]);
+    setQty("1");
+    setCode("");
+    setTimeout(() => qtyRef.current?.focus?.(), 150);
+  };
+
+  const lookup = async (value: string) => {
+    const v = (value || "").trim();
+    if (!v) return;
     try {
-      const response = await getAllReturnItemsBySuppCode(suppCode);
-      if (response.data !== "") {
-        setReturnItems(response.data);
-      }
-    } catch (error: any) {
-      if (error.response) {
-        setmessage(error.response.data);
-      }
+      const res = await rlLookup(v);
+      const list: LookupItem[] = res.data || [];
+      if (list.length === 0) say(`No item for ${v}`, false);
+      else if (list.length === 1) pickItem(list[0]);
+      else setChoices(list);
+    } catch (e) {
+      say(errText(e, "Item lookup failed"), false);
+    }
+  };
+
+  // camera: the same item again = one more
+  const handleScan = (data: string) => {
+    if (item && (data === item.barcode || data === item.refCode)) {
+      const next = (parseFloat(qty) || 0) + 1;
+      setQty(String(next));
+      say(`Same item again - qty ${next}`);
       return;
     }
+    lookup(data);
   };
 
-  const ConfirmReturnItem = (id: any) => {
-    if (validateInput(_retunQty)) {
-      Alert.alert(
-        "Confirmation",
-        "Do you want to Add Return Item?",
-        [
-          { text: "Cancel", style: "cancel" },
-          { text: "OK", onPress: () => AddReturnItem(id) },
-        ],
-        { cancelable: false }
-      );
-    } else {
-      Alert.alert("Invalid Input", "Please enter a valid number.");
-    }
-  };
-
-  const AddReturnItem = async (id: any) => {
+  const searchByDescription = async (text: string) => {
+    if (text.trim().length < 3) { setDescResults([]); return; }
     try {
-      const returnItem = {
-        Item_Code: _items.item_Code,
-        Ref_Code: _items.ref_Code,
-        Barcode: _items.barcode,
-        Descrip: _items.descrip,
-        Supp_Code: _items.supp_Code,
-        Status: 1,
-        Date: new Date().toISOString().split("T")[0],
-        Cost_Price: _items.cost_Price,
-        ERet_Price: _items.eRet_Price,
-        Qty: parseFloat(_retunQty),
-      };
-      const response = await apiAddReturnItem(returnItem);
-      setReturnItems((prevItems) => [...prevItems, response.data]);
-      setReturnQty("");
-      setmessage("Return item added successfully");
-    } catch (error: any) {
-      if (error.response) {
-        setmessage(error.response.data);
-      }
-      return;
+      const res = await apiSearchItemzByDes(text.trim());
+      setDescResults((res.data || []).slice(0, 40));
+    } catch {
+      setDescResults([]);
     }
   };
 
-  const handleSuppDesChange = (text: string) => {
-    setSuppCode(text);
-    if (text.length > 0) {
-      SearchBySuppDes(text);
-    } else {
-      setSuppSuggestions([]);
-    }
+  const pickDescription = (it: any) => {
+    setDescModal(false);
+    setDescResults([]);
+    lookup(it.barcode || it.refCode || String(it.itemId));
   };
 
-  const SearchBySuppDes = async (query: string) => {
+  const changeQty = (d: number) => setQty((q) => String(Math.max(1, (parseFloat(q) || 0) + d)));
+
+  const clearItem = () => { setItem(null); setChoices([]); setQty("1"); setCode(""); };
+
+  const addItem = async () => {
+    if (!supplier) { Alert.alert("Supplier", "Select the supplier first."); return; }
+    if (!item) { say("Scan an item first", false); return; }
+    const q = parseFloat(qty);
+    if (!(q > 0)) { Alert.alert("Qty", "Enter a return qty more than 0."); return; }
+    setBusy(true);
     try {
-      const response = await apigetSuppByDescription(query);
-      setSuppSuggestions(response.data);
-    } catch (error: any) {
-      if (error.response) {
-        setmessage(error.response.data);
-      }
-      return;
+      await rlAdd({ itemId: item.itemId, suppId: supplier.suppId, qty: q, reason });
+      say(`${item.descrip} x ${q} added`);
+      clearItem();
+      loadList();
+    } catch (e) {
+      say(errText(e, "Not added"), false);
+    } finally {
+      setBusy(false);
     }
   };
 
-  const GetSupplier = (suggestion: any) => {
-    setSuppCode(suggestion.supp_Code);
-    setSuppSuggestions([]);
-    setsuppModalVisible(false);
-    setSupplier(suggestion);
+  // ---- list ----
+  const toggleSelect = (id: number) =>
+    setSelected((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+
+  const selectAll = () =>
+    setSelected((s) => (s.size === rows.length ? new Set() : new Set(rows.map((r) => r.returnId))));
+
+  const selRows = rows.filter((r) => selected.has(r.returnId));
+
+  const deleteSelected = () => {
+    if (selRows.length === 0) { Alert.alert("Delete", "Select the items to delete."); return; }
+    Alert.alert("Delete", `Delete ${selRows.length} item(s) from the return list?`, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete", style: "destructive", onPress: async () => {
+          setBusy(true);
+          try {
+            const res = await rlDelete(selRows.map((r) => r.returnId));
+            say(`${res.data?.deleted ?? 0} item(s) deleted`);
+            setSelected(new Set());
+            loadList();
+          } catch (e) { say(errText(e, "Not deleted"), false); }
+          finally { setBusy(false); }
+        },
+      },
+    ]);
   };
 
-  const clearForm = () => {
-    setBarcode("");
-    setItemCode("");
-    setDescription("");
-    setItems({});
-    setStock("");
-    setReturnQty("");
-    setSuggestions([]);
-    //setReturnItems([]);
-    setSupplier({});
-    setSuppCode("");
-    setSuppSuggestions([]);
-    lastScannedRef.current = null;
-    setmessage("");
+  // all selected already Ready -> back to Added, else Ready
+  const toggleReady = async () => {
+    if (selRows.length === 0) { Alert.alert("Ready", "Select the items you have checked / packed."); return; }
+    const status = selRows.every((r) => r.status === 2) ? 1 : 2;
+    setBusy(true);
+    try {
+      const res = await rlSetStatus(selRows.map((r) => r.returnId), status);
+      say(status === 2 ? `${res.data?.changed ?? 0} item(s) Ready` : `${res.data?.changed ?? 0} item(s) back to Added`);
+      loadList();
+    } catch (e) { say(errText(e, "Status not changed"), false); }
+    finally { setBusy(false); }
   };
 
-  const clearAllForm = () => {
-    setReturnItems([]);
-    clearForm();
-  };
-
-  const handleScan = (scannedData: string) => {
-    if (scannedData === lastScannedRef.current) {
-      setmessage("Same barcode scanned consecutively. Ignoring.");
+  // the selected Ready rows (none selected = every Ready row of this supplier) -> PRN, off stock now
+  const processReady = () => {
+    const ready = (selRows.length > 0 ? selRows : rows).filter((r) => r.status === 2);
+    if (ready.length === 0) {
+      Alert.alert("Process", "No Ready items. Select the items, press Ready, then Process.");
       return;
     }
-    lastScannedRef.current = scannedData;
-    setBarcode(scannedData);
-    setmessage(scannedData);
-  };
-
-  const validateInput = (input) => {
-    const regex = /^[0-9]*\.?[0-9]+$/;
-    return regex.test(input);
-  };
-
-  const toggleSelect = (id) => {
-    setReturnItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === id ? { ...item, selected: !item.selected } : item
-      )
+    const amount = ready.reduce((a, r) => a + (r.amount || 0), 0);
+    Alert.alert(
+      "Process",
+      `Make the PRN for ${ready.length} Ready item(s) of ${supplier?.suppName} (Rs ${amount.toFixed(2)}) and take them off stock?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Make PRN", onPress: async () => {
+            setBusy(true);
+            try {
+              const ids = ready.map((r) => r.returnId);
+              const res = await rlProcess(ids, true);
+              say(`${res.data?.prnNo} made - ${res.data?.lines} line(s), off stock`);
+              setSelected(new Set());
+              loadList();
+              Alert.alert("Print", "Print the return slip?", [
+                { text: "No", style: "cancel" },
+                {
+                  text: "Print", onPress: async () => {
+                    try { await rlPrint(ids); say("Return slip printed"); }
+                    catch (e) { say(errText(e, "Not printed"), false); }
+                  },
+                },
+              ]);
+            } catch (e) {
+              say(errText(e, "Not processed"), false);
+            } finally {
+              setBusy(false);
+            }
+          },
+        },
+      ]
     );
   };
 
-  const UpdateItemsAsReturned = async () => {
-    try {
-      const selectedItems = _returnItems.filter((item) => item.selected);
-      if (selectedItems.length === 0) {
-        Alert.alert("No items selected", "Please select items to return.");
-        return;
-      }
-      Alert.alert(
-        "Return Confirmation",
-        "Do you want to mark the selected items as returned?",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Yes",
-            onPress: async () => {
-              for (const item of selectedItems) {
-                const updatedItem = { ...item, status: 2 };
-                await apiUpdateItemById(item.id, updatedItem);
-              }
-              setReturnItems((prevItems) =>
-                prevItems.map((item) =>
-                  item.selected
-                    ? {
-                        ...item,
-                        status: 2,
-                        statusText: "Returned",
-                        selected: false,
-                      }
-                    : item
-                )
-              );
-              setmessage("Selected items have been marked as returned");
-            },
-          },
-        ]
-      );
-    } catch (error: any) {
-      if (error.response) {
-        setmessage(error.response.data);
-      }
-      return;
-    }
-  };
-
-  const ProcessSelectedItems = async () => {
-    try {
-      const itemsToProcess = _returnItems.filter((item) => item.status === 2);
-      if (itemsToProcess.length === 0) {
-        Alert.alert(
-          "No items to process",
-          "There are no items with status returned."
-        );
-        return;
-      }
-      const uniqueSuppCodes = [
-        ...new Set(itemsToProcess.map((item) => item.supp_Code)),
-      ];
-      if (uniqueSuppCodes.length > 1) {
-        Alert.alert(
-          "Validation Error",
-          "Items have different supplier codes. Please ensure all items belong to the same supplier."
-        );
-        return;
-      }
-      if (uniqueSuppCodes[0] !== _suppCode) {
-        Alert.alert(
-          "Validation Error",
-          "Items do not match the expected supplier code."
-        );
-        return;
-      }
-      Alert.alert(
-        "Process Confirmation",
-        "Do you want to process the selected items?",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Yes",
-            onPress: async () => {
-              const response = await apiProcessReturnItems(itemsToProcess);
-              setReturnItems((prevItems) =>
-                prevItems.filter((item) => item.status !== 2)
-              );
-              setmessage("All items with status returned have been processed.");
-
-              if (response.data.print) {
-                Alert.alert(
-                  "Print Confirmation",
-                  "Do you want to print a copy?",
-                  [
-                    { text: "Cancel", style: "cancel" },
-                    {
-                      text: "Yes",
-                      onPress: () => printProcessedData(itemsToProcess),
-                    },
-                  ]
-                );
-              }
-            },
-          },
-        ]
-      );
-    } catch (error: any) {
-      if (error.response) {
-        setmessage(error.response.data);
-      }
-      return;
-    }
-  };
-
-  const DeleteItems = async () => {
-    try {
-      const selectedItems = _returnItems.filter((item) => item.selected);
-      if (selectedItems.length === 0) {
-        Alert.alert("No items selected", "Please select items to delete.");
-        return;
-      }
-      Alert.alert(
-        "Confirm Deletion",
-        "Are you sure you want to delete the selected items?",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "OK",
-            onPress: async () => {
-              for (const item of selectedItems) {
-                await apiDeleteItemById(item.id);
-              }
-              setReturnItems((prevItems) =>
-                prevItems.filter(
-                  (item) => !selectedItems.some((sel) => sel.id === item.id)
-                )
-              );
-              setmessage("Selected items have been deleted.");
-            },
-          },
-        ],
-        { cancelable: false }
-      );
-    } catch (error: any) {
-      if (error.response) {
-        setmessage(error.response.data);
-      }
-      return;
-    }
-  };
-
-  const printProcessedData = async (items: any) => {
-    try {
-      if (items.length === 0) {
-        Alert.alert("No items to print", "There are no items.");
-        return;
-      }
-      await apiPrint(items);
-      setmessage("Print request has been sent successfully.");
-    } catch (error: any) {
-      if (error.response) {
-        setmessage(error.response.data);
-      }
-      return;
-    }
-  };
+  const total = rows.reduce((a, r) => a + (r.amount || 0), 0);
+  const readyCount = rows.filter((r) => r.status === 2).length;
 
   return {
-    _modalVisible,
-    setModalVisible,
-    _description,
-    setDescription,
-    inputRef2,
-    _suggestions,
-    setSuggestions,
-    _itemCode,
-    setItemCode,
-    _items,
-    setItems,
-    _stock,
-    setStock,
-    _barcode,
-    setBarcode,
-    inputRef,
-    _retunQty,
-    setReturnQty,
-    _returnItems,
-    setReturnItems,
-    _suppSuggestions,
-    setSuppSuggestions,
-    _suppCode,
-    setSuppCode,
-    _supplier,
-    setSupplier,
-    _suppmodalVisible,
-    setsuppModalVisible,
-    GetItem,
-    handleDescriptionChange,
-    SearchByDescription,
-    GetItemDetails,
-    GetStock,
-    GetReturnItemListBySuppCode,
-    ConfirmReturnItem,
-    AddReturnItem,
-    handleSuppDesChange,
-    SearchBySuppDes,
-    GetSupplier,
-    clearForm,
-    handleScan,
-    validateInput,
-    toggleSelect,
-    UpdateItemsAsReturned,
-    ProcessSelectedItems,
-    DeleteItems,
-    printProcessedData,
-    message,
-    clearAllForm,
+    supplier, suppModal, setSuppModal, suppResults, searchSupplier, pickSupplier,
+    code, setCode, item, choices, setChoices, lookup, handleScan, pickItem, clearItem,
+    descModal, setDescModal, descResults, searchByDescription, pickDescription,
+    qty, setQty, changeQty, qtyRef, reason, setReason, addItem, cameraOn, setCameraOn,
+    rows, selected, selRows, toggleSelect, selectAll, loadList, loading, busy,
+    deleteSelected, toggleReady, processReady, total, readyCount, message,
   };
 };
 
