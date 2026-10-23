@@ -60,7 +60,7 @@ const HomePage = () => {
       <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: 24 + navBar }]} keyboardShouldPersistTaps="handled">
         {/* Brand */}
         <View style={styles.brand}>
-          <Text style={styles.brandName}>IRM</Text>
+          <Text style={styles.brandName}>Iresha Food City</Text>
           <Text style={styles.brandSub}>Shop floor tools</Text>
         </View>
 
@@ -118,7 +118,7 @@ const HomePage = () => {
           ) : null}
         </View>
 
-        <Text style={styles.footer}>© {new Date().getFullYear()} IRM</Text>
+        <Text style={styles.footer}>© {new Date().getFullYear()} Powered by Amare</Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
   scroll: { padding: 14 },
 
   brand: { backgroundColor: C.primary, paddingVertical: 18, paddingHorizontal: 16, marginBottom: 14 },
-  brandName: { color: C.white, fontSize: 30, fontWeight: "bold", letterSpacing: 2 },
+  brandName: { color: C.white, fontSize: 26, fontWeight: "bold", letterSpacing: 0.5 },
   brandSub: { color: C.sky, fontSize: 14, fontWeight: "600", marginTop: 2 },
 
   grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 12 },

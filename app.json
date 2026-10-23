@@ -10,12 +10,12 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#4B49AC"
+      "backgroundColor": "#1E8E4A"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#4B49AC"
+        "backgroundColor": "#1E8E4A"
       },
       "versionCode": 1,
       "permissions": [
@@ -28,24 +28,30 @@
         "VIBRATE",
         "FOREGROUND_SERVICE",
         "ACCESS_NETWORK_STATE",
-        "INTERNET",
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE",
-        "CAMERA",
-        "RECORD_AUDIO",
-        "VIBRATE",
-        "FOREGROUND_SERVICE",
-        "ACCESS_NETWORK_STATE",
         "INTERNET"
       ],
-      "usesCleartextTraffic": true,
       "package": "com.iceasanka.IRM"
     },
     "plugins": [
       "expo-router",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash.png",
+          "imageWidth": 260,
+          "resizeMode": "contain",
+          "backgroundColor": "#1E8E4A"
+        }
+      ]
     ],
     "extra": {
       "router": {
