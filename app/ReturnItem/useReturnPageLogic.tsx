@@ -14,7 +14,7 @@ import {
 } from "../../api.js";
 
 // Return Stock on the NEW system (api/ReturnList): the same list as the back office Return Items page.
-// Pick the supplier, scan items (scanning the same item again = qty + 1), Add. Then select rows:
+// Pick the supplier, scan items (scanning the same item again asks to add 1), Add. Then select rows:
 // Ready = checked / packed, Process = a PRN of the Ready rows, taken off stock at once.
 
 export interface Supplier { suppId: number; suppCode: string; suppName: string }
@@ -127,12 +127,19 @@ const useReturnPageLogic = () => {
     }
   };
 
-  // camera: the same item again = one more
+  // camera: the same item again -> ask before adding one more (the camera keeps seeing the barcode, so no second
+  // question while one is open, and a short pause after it is answered)
+  const askingRef = useRef(false);
   const handleScan = (data: string) => {
     if (item && (data === item.barcode || data === item.refCode)) {
+      if (askingRef.current) return;
+      askingRef.current = true;
+      const done = () => setTimeout(() => { askingRef.current = false; }, 2000);
       const next = (parseFloat(qty) || 0) + 1;
-      setQty(String(next));
-      say(`Same item again - qty ${next}`);
+      Alert.alert("Same item", `${item.descrip} is already scanned (qty ${parseFloat(qty) || 0}). Add one more?`, [
+        { text: "No", style: "cancel", onPress: done },
+        { text: `Add (qty ${next})`, onPress: () => { setQty((q) => String((parseFloat(q) || 0) + 1)); say(`Qty ${next}`); done(); } },
+      ], { cancelable: true, onDismiss: done });
       return;
     }
     lookup(data);

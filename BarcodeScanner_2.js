@@ -56,7 +56,8 @@ const BarcodeScanner_2 = ({ onScan }) => {
             <CameraView
                 onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
                 barcodeScannerSettings={{
-                    barcodeTypes: ['code128', 'code93', 'codabar', 'ean13', 'ean8', 'code39']
+                    // upc_a / upc_e: Android reports 12-digit imported-item codes as UPC, not EAN-13
+                    barcodeTypes: ['code128', 'code93', 'codabar', 'ean13', 'ean8', 'upc_a', 'upc_e', 'code39', 'itf14']
                 }}
                 autofocus='on'
                 style={styles.camera}

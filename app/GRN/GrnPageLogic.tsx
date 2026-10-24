@@ -138,12 +138,19 @@ const useGrnPageLogic = () => {
     }
   };
 
-  // camera: the same item again = one more
+  // camera: the same item again -> ask before adding one more (the camera keeps seeing the barcode, so no second
+  // question while one is open, and a short pause after it is answered)
+  const askingRef = useRef(false);
   const handleScan = (data: string) => {
     if (item && (data === item.barcode || data === item.refCode)) {
+      if (askingRef.current) return;
+      askingRef.current = true;
+      const done = () => setTimeout(() => { askingRef.current = false; }, 2000);
       const next = (parseFloat(qty) || 0) + 1;
-      setQty(String(next));
-      say(`Same item again - qty ${next}`);
+      Alert.alert("Same item", `${item.descrip} is already scanned (qty ${qtyText(parseFloat(qty) || 0)}). Add one more?`, [
+        { text: "No", style: "cancel", onPress: done },
+        { text: `Add (qty ${qtyText(next)})`, onPress: () => { setQty((q) => String((parseFloat(q) || 0) + 1)); say(`Qty ${qtyText(next)}`); done(); } },
+      ], { cancelable: true, onDismiss: done });
       return;
     }
     lookup(data);
